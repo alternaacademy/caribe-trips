@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "caribe_trips",
+  "project_id": "6ecf15ce-e30e-4201-bc20-67fb87e5fa2b"
+}
