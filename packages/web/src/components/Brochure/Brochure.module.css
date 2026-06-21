@@ -1,0 +1,125 @@
+.brochure {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+.heroImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(6, 46, 36, 0.7) 0%, rgba(6, 46, 36, 0) 55%);
+  pointer-events: none;
+}
+.back {
+  position: absolute;
+  top: calc(var(--safe-top) + var(--space-3));
+  left: var(--space-3);
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--green-700);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.heroText {
+  position: absolute;
+  left: var(--space-5);
+  right: var(--space-5);
+  bottom: var(--space-4);
+  z-index: 2;
+}
+.eyebrow {
+  text-transform: uppercase;
+  font-size: var(--fs-tiny);
+  letter-spacing: var(--eyebrow-tracking);
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+.title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h1);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  color: #fff;
+  margin: 0;
+}
+
+/* ── Quick facts ── */
+.facts {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+.fact {
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+
+.gallery {
+  padding: var(--space-4) 0 0;
+}
+
+.section {
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+.heading {
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  color: var(--text-strong);
+  margin: 0 0 var(--space-3);
+}
+.includes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+}
+.departures {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.departure {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+.departure:last-child {
+  border-bottom: 0;
+}
+.departureDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-body);
+  color: var(--text-strong);
+}

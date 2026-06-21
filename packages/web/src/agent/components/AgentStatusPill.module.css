@@ -1,0 +1,30 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.pending {
+  background: var(--pending-bg);
+  color: var(--pending);
+}
+.pending::before {
+  background: var(--pending);
+}
+.confirmed {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.confirmed::before {
+  background: var(--success);
+}

@@ -1,0 +1,75 @@
+# Caribe Trips — full local stack.
+# `docker compose up --build` brings up MongoDB + the API + the web app.
+# `docker compose up -d mongo` runs only MongoDB (for host-side API/web dev).
+# `docker compose --profile tools up -d` adds mongo-express (admin UI).
+#
+# Ports are overridable via a .env file (MONGO_PORT / API_PORT / WEB_PORT) when
+# the defaults clash with something already running locally.
+services:
+  mongo:
+    image: mongo:7
+    container_name: caribe-mongo
+    restart: unless-stopped
+    ports:
+      # Host port is overridable to avoid clashing with a local Mongo install:
+      # set MONGO_PORT in .env (then point MONGODB_URI at the same port).
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      dockerfile: crates/caribe-api/Dockerfile
+    container_name: caribe-api
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DB: caribe_trips
+      API_BIND: 0.0.0.0:8080
+      # The browser origin that must be allowed by CORS (the web service below).
+      WEB_ORIGIN: "http://localhost:${WEB_PORT:-5173}"
+      RUST_LOG: info
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: packages/web/Dockerfile
+      args:
+        # Baked into the bundle: the API URL the browser uses (host-published).
+        VITE_API_BASE_URL: "http://localhost:${API_PORT:-8080}/api"
+    container_name: caribe-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-5173}:80"
+    depends_on:
+      - api
+
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: caribe-mongo-express
+    restart: unless-stopped
+    profiles: ["tools"]
+    ports:
+      - "${MONGO_EXPRESS_PORT:-8081}:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: "27017"
+      ME_CONFIG_BASICAUTH: "false"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo_data: {}

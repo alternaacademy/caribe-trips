@@ -1,0 +1,19 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pending {
+  background: var(--pending-bg);
+  color: var(--pending);
+}
+.confirmed {
+  background: var(--success-bg);
+  color: var(--success);
+}

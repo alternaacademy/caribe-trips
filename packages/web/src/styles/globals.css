@@ -1,0 +1,278 @@
+/* ── Tokens — Caribe Trips "Palma & Arena" ─────────────────────────────
+   Ported verbatim from notes/web_app/index.html (== notes/DESIGN.md). This is
+   the shared source of truth for all three design prompts and the app. */
+:root {
+  --green-50: #e9f7f1;
+  --green-100: #c9ecde;
+  --green-200: #97d9c0;
+  --green-300: #5fc0a0;
+  --green-400: #2ea683;
+  --green-500: #0f8b6b;
+  --green-600: #0b7058;
+  --green-700: #0a5a47;
+  --green-800: #094736;
+  --green-900: #062e24;
+  --coral-300: #ffb59e;
+  --coral-400: #ff8e6e;
+  --coral-500: #ff7a59;
+  --coral-600: #e85b38;
+  --sand-bg: #fbf8f3;
+  --surface: #ffffff;
+  --border: #e7e2d8;
+  --text-strong: #1c2b26;
+  --text-muted: #5b6b64;
+  --text-faint: #8a968f;
+  --success: #0b7058;
+  --success-bg: #e9f7f1;
+  --pending: #b5780a;
+  --pending-bg: #fdf3dc;
+  --error: #d64545;
+  --error-bg: #fbeaea;
+  --info: #2b8a9e;
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --fs-display: clamp(2rem, 6vw, 3rem);
+  --fs-h1: clamp(1.6rem, 4.5vw, 2.25rem);
+  --fs-h2: clamp(1.3rem, 3.5vw, 1.6rem);
+  --fs-h3: 1.125rem;
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+  --fs-tiny: 0.75rem;
+  --lh-tight: 1.15;
+  --lh-body: 1.55;
+  --eyebrow-tracking: 0.08em;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(6, 46, 36, 0.06), 0 1px 3px rgba(6, 46, 36, 0.08);
+  --shadow-md: 0 4px 12px rgba(6, 46, 36, 0.1);
+  --shadow-lg: 0 12px 32px rgba(6, 46, 36, 0.16);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 180ms;
+  --container: 480px;
+  /* Backoffice-only: wider desktop content column. */
+  --container-agent: 1024px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+}
+body {
+  font-family: var(--font-sans);
+  color: var(--text-strong);
+  background: var(--sand-bg);
+}
+
+/* Customer stage: a deep-green studio backdrop so the phone frame reads as a
+   device. Scoped to the customer layout (the agent backoffice is full-bleed). */
+.app-stage {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background: radial-gradient(120% 80% at 50% -10%, #0a5a47 0%, #062e24 60%, #04201a 100%);
+  padding: 24px 16px;
+}
+@media (max-width: 520px) {
+  .app-stage {
+    padding: 0;
+  }
+}
+
+img {
+  display: block;
+}
+button {
+  font-family: inherit;
+}
+
+/* Visible focus ring for keyboard users */
+:focus-visible {
+  outline: 2px solid var(--green-400);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── App frame (the phone column) ──────────────────────────────────────── */
+.app {
+  position: relative;
+  width: 100%;
+  max-width: var(--container);
+  background: var(--sand-bg);
+  border-radius: 36px;
+  box-shadow: 0 40px 80px -24px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  height: min(880px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 520px) {
+  .app {
+    border-radius: 0;
+    height: 100vh;
+    max-width: none;
+    box-shadow: none;
+  }
+}
+
+.app__scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.app__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── App bar ───────────────────────────────────────────────────────────── */
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding: calc(var(--safe-top) + 14px) var(--space-5) 14px;
+  background: var(--surface);
+  border-bottom: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  transition: box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.app-bar.is-scrolled {
+  box-shadow: var(--shadow-sm);
+  border-bottom-color: var(--border);
+}
+.app-bar__brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--green-700);
+  margin: 0;
+}
+.app-bar__brand span {
+  color: var(--coral-500);
+}
+.icon-btn {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--green-700);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.icon-btn:active {
+  background: var(--green-50);
+}
+
+/* ── Agent backoffice shell (placeholder until Task 18) ────────────────── */
+.agent {
+  width: 100%;
+  max-width: 1100px;
+  min-height: min(880px, calc(100vh - 48px));
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 520px) {
+  .agent {
+    border-radius: 0;
+    min-height: 100vh;
+    max-width: none;
+  }
+}
+.agent-bar {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.agent-bar__brand {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--green-700);
+  margin: 0;
+}
+
+/* ── Route placeholder (scaffold only) ─────────────────────────────────── */
+.placeholder {
+  padding: var(--space-6) var(--space-5);
+}
+.placeholder__eyebrow {
+  display: inline-block;
+  color: var(--text-muted);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--eyebrow-tracking);
+  margin-bottom: var(--space-2);
+}
+.placeholder__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h1);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  color: var(--text-strong);
+  margin: 0 0 var(--space-3);
+}
+.placeholder__route {
+  font-family: var(--font-sans);
+  font-size: var(--fs-small);
+  color: var(--text-faint);
+}
+.placeholder__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+.placeholder__nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--green-700);
+  font-size: var(--fs-small);
+  text-decoration: none;
+}

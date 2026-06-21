@@ -1,0 +1,38 @@
+.counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.pending {
+  background: var(--pending);
+}
+.ok {
+  background: var(--success);
+}
+.month {
+  background: var(--green-300);
+}
+.label {
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+.num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-strong);
+}

@@ -1,0 +1,193 @@
+{
+  "packages": [
+    {
+      "title": "Escapada a Samaná",
+      "destination": "Samana",
+      "heroImage": "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&q=80&auto=format&fit=crop",
+      "gallery": [
+        "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=800&q=80&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80&auto=format&fit=crop"
+      ],
+      "shortPitch": "Tres días entre montañas verdes, playas vírgenes y el Cayo Levantado.",
+      "descriptionMd": "## Escapada a Samaná\n\nTres días para desconectar en la península más verde del país. Recorre playas vírgenes, navega hasta el **Cayo Levantado** y déjate sorprender por la bahía donde, en temporada, se avistan ballenas jorobadas.\n\n- Alojamiento frente al mar\n- Excursión en lancha al Cayo Levantado\n- Tiempo libre para playa y senderos\n\n> Salidas desde Santo Domingo con guía local.",
+      "included": [
+        "Transporte ida y vuelta desde Santo Domingo",
+        "2 noches de alojamiento",
+        "Desayuno diario",
+        "Excursión al Cayo Levantado",
+        "Guía local"
+      ],
+      "notIncluded": ["Almuerzos y cenas", "Propinas", "Gastos personales"],
+      "departures": [
+        { "date": "2026-06-14", "price": 24900 },
+        { "date": "2026-07-12", "price": 24900 }
+      ],
+      "featured": true
+    },
+    {
+      "title": "Punta Cana Todo Incluido",
+      "destination": "PuntaCana",
+      "heroImage": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80&auto=format&fit=crop",
+      "gallery": [
+        "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80&auto=format&fit=crop"
+      ],
+      "shortPitch": "Cuatro noches frente al mar en un resort all-inclusive, con todo resuelto.",
+      "descriptionMd": "## Punta Cana Todo Incluido\n\nCuatro noches en un resort **all-inclusive** sobre una de las playas más famosas del Caribe. Comidas, bebidas y actividades incluidas: solo tienes que llegar.\n\n- Habitación con vista al jardín o al mar\n- Piscinas, playa y deportes acuáticos sin motor\n- Animación diurna y shows nocturnos",
+      "included": [
+        "4 noches en resort all-inclusive",
+        "Todas las comidas y bebidas",
+        "Transporte aeropuerto-hotel",
+        "Acceso a piscinas y playa",
+        "Actividades y shows del resort"
+      ],
+      "notIncluded": ["Vuelos", "Excursiones opcionales", "Spa y tratamientos"],
+      "departures": [
+        { "date": "2026-06-28", "price": 38500 },
+        { "date": "2026-07-26", "price": 38500 }
+      ],
+      "featured": true
+    },
+    {
+      "title": "Buceo en Bayahíbe",
+      "destination": "Bayahibe",
+      "heroImage": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80&auto=format&fit=crop",
+      "gallery": [
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&q=80&auto=format&fit=crop"
+      ],
+      "shortPitch": "Dos inmersiones guiadas en los arrecifes de Bayahíbe, equipo incluido.",
+      "descriptionMd": "## Buceo en Bayahíbe\n\nDos inmersiones guiadas por los arrecifes y pecios de Bayahíbe, puerta de entrada al **Parque Nacional del Este**. Aguas cálidas y transparentes, ideales para todos los niveles.\n\n- Equipo completo incluido\n- Instructor certificado PADI\n- Grupos reducidos",
+      "included": [
+        "2 inmersiones guiadas",
+        "Equipo de buceo completo",
+        "Instructor certificado PADI",
+        "Almuerzo ligero",
+        "Transporte local"
+      ],
+      "notIncluded": ["Certificación PADI", "Fotos submarinas", "Propinas"],
+      "departures": [
+        { "date": "2026-07-05", "price": 18200 },
+        { "date": "2026-08-02", "price": 18200 }
+      ],
+      "featured": false
+    },
+    {
+      "title": "Isla Saona Full Day",
+      "destination": "LaRomana",
+      "heroImage": "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800&q=80&auto=format&fit=crop",
+      "gallery": [
+        "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800&q=80&auto=format&fit=crop"
+      ],
+      "shortPitch": "Un día completo en la Isla Saona: piscina natural, playa y catamarán.",
+      "descriptionMd": "## Isla Saona Full Day\n\nUn día completo en la postal del Caribe. Navega en catamarán, detente en la **piscina natural** de estrellas de mar y disfruta de la playa con almuerzo buffet incluido.\n\n- Catamarán de ida y lancha rápida de regreso\n- Barra libre nacional a bordo\n- Almuerzo buffet en la isla",
+      "included": [
+        "Catamarán y lancha rápida",
+        "Parada en la piscina natural",
+        "Almuerzo buffet en la isla",
+        "Barra libre nacional",
+        "Animación a bordo"
+      ],
+      "notIncluded": ["Transporte desde el hotel", "Fotos profesionales", "Propinas"],
+      "departures": [
+        { "date": "2026-06-20", "price": 9800 },
+        { "date": "2026-07-18", "price": 9800 },
+        { "date": "2026-08-15", "price": 9800 }
+      ],
+      "featured": false
+    },
+    {
+      "title": "Salto El Limón a caballo",
+      "destination": "Samana",
+      "heroImage": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80&auto=format&fit=crop",
+      "gallery": [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80&auto=format&fit=crop"
+      ],
+      "shortPitch": "Cabalgata hasta la cascada El Limón, una de las más bellas de Samaná.",
+      "descriptionMd": "## Salto El Limón a caballo\n\nUna cabalgata por senderos de selva hasta el **Salto El Limón**, una cascada de 40 metros en el corazón de Samaná. Date un baño refrescante en su poza antes de regresar.\n\n- Caballo y guía durante todo el recorrido\n- Baño en la cascada\n- Refrigerio típico dominicano",
+      "included": [
+        "Cabalgata guiada ida y vuelta",
+        "Guía local",
+        "Baño en la cascada",
+        "Refrigerio típico"
+      ],
+      "notIncluded": ["Transporte hasta Samaná", "Almuerzo", "Propinas al guía"],
+      "departures": [{ "date": "2026-07-13", "price": 12400 }],
+      "featured": false
+    },
+    {
+      "title": "Catalina & Altos de Chavón",
+      "destination": "LaRomana",
+      "heroImage": "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80&auto=format&fit=crop",
+      "gallery": [
+        "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=80&auto=format&fit=crop"
+      ],
+      "shortPitch": "Snorkel en Isla Catalina y la ciudad de piedra de Altos de Chavón.",
+      "descriptionMd": "## Catalina & Altos de Chavón\n\nDos íconos de La Romana en un solo día: el arrecife de **Isla Catalina** para hacer snorkel y la ciudad de piedra de **Altos de Chavón**, réplica de un pueblo mediterráneo del siglo XVI.\n\n- Catamarán a Isla Catalina con snorkel\n- Almuerzo buffet\n- Recorrido por Altos de Chavón",
+      "included": [
+        "Excursión en catamarán a Isla Catalina",
+        "Equipo de snorkel",
+        "Almuerzo buffet",
+        "Visita a Altos de Chavón",
+        "Guía bilingüe"
+      ],
+      "notIncluded": ["Compras en Altos de Chavón", "Bebidas premium", "Propinas"],
+      "departures": [{ "date": "2026-08-09", "price": 16700 }],
+      "featured": true
+    }
+  ],
+  "bookings": [
+    {
+      "code": "CB-7F3K",
+      "packageTitle": "Escapada a Samaná",
+      "departureDate": "2026-06-14",
+      "people": 2,
+      "contact": { "name": "María Pérez", "phone": "809-555-0142", "email": "maria.perez@example.com" },
+      "status": "Pendiente",
+      "createdAt": "2026-06-10T09:15:00Z"
+    },
+    {
+      "code": "CB-3M9P",
+      "packageTitle": "Punta Cana Todo Incluido",
+      "departureDate": "2026-06-28",
+      "people": 4,
+      "contact": { "name": "Juan Rodríguez", "phone": "829-555-0188", "email": "juan.rodriguez@example.com" },
+      "status": "Pendiente",
+      "createdAt": "2026-06-11T11:40:00Z"
+    },
+    {
+      "code": "CB-8KQ2",
+      "packageTitle": "Buceo en Bayahíbe",
+      "departureDate": "2026-07-05",
+      "people": 1,
+      "contact": { "name": "Ana Gómez", "phone": "849-555-0117", "email": "ana.gomez@example.com" },
+      "status": "Pendiente",
+      "createdAt": "2026-06-12T16:05:00Z"
+    },
+    {
+      "code": "CB-2L5T",
+      "packageTitle": "Isla Saona Full Day",
+      "departureDate": "2026-06-20",
+      "people": 3,
+      "contact": { "name": "Pedro Martínez", "phone": "809-555-0199", "email": "pedro.martinez@example.com" },
+      "status": "Pendiente",
+      "createdAt": "2026-06-12T18:20:00Z"
+    },
+    {
+      "code": "CB-9XR4",
+      "packageTitle": "Escapada a Samaná",
+      "departureDate": "2026-07-12",
+      "people": 2,
+      "contact": { "name": "Lucía Fernández", "phone": "809-555-0123", "email": "lucia.fernandez@example.com" },
+      "status": "Confirmada",
+      "createdAt": "2026-06-05T10:00:00Z"
+    },
+    {
+      "code": "CB-6H1W",
+      "packageTitle": "Catalina & Altos de Chavón",
+      "departureDate": "2026-08-09",
+      "people": 2,
+      "contact": { "name": "Carlos Díaz", "phone": "829-555-0166", "email": "carlos.diaz@example.com" },
+      "status": "Confirmada",
+      "createdAt": "2026-06-06T14:30:00Z"
+    }
+  ]
+}

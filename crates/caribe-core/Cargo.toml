@@ -1,0 +1,33 @@
+[package]
+name = "caribe-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[lib]
+name = "caribe_core"
+path = "src/lib.rs"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+rand = { workspace = true }
+regex = { workspace = true }
+mongodb = { workspace = true }
+futures = { workspace = true }
+anyhow = { workspace = true }
+ts-rs = { version = "10", optional = true, features = ["chrono-impl"] }
+
+[features]
+# Enables ts-rs derives for generating packages/web/src/api/types.ts.
+schema = ["dep:ts-rs"]
+
+[[example]]
+name = "gen-types"
+required-features = ["schema"]
+
+[dev-dependencies]
+tokio = { workspace = true }

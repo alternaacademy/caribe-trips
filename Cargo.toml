@@ -1,0 +1,40 @@
+[workspace]
+resolver = "2"
+members = ["crates/caribe-core", "crates/caribe-api", "crates/mobile"]
+# Keep the Tauri mobile shell out of default builds: plain `cargo build`/`check`
+# and CI run only the core + API and never need the Android/desktop webview deps.
+default-members = ["crates/caribe-core", "crates/caribe-api"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Caribe Trips"]
+
+[workspace.dependencies]
+# Shared crates pinned here; members opt in with `{ workspace = true }`.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal"] }
+axum = "0.8"
+mongodb = "3"
+anyhow = "1"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+rand = "0.8"
+regex = "1"
+futures = "0.3"
+tower = "0.5"
+clap = { version = "4", features = ["derive", "env"] }
+dotenvy = "0.15"
+
+# Internal crates
+caribe-core = { path = "crates/caribe-core" }
+
+[profile.release]
+opt-level = 3
+lto = "thin"

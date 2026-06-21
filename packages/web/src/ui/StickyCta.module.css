@@ -1,0 +1,22 @@
+.bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 12px rgba(6, 46, 36, 0.06);
+  padding: var(--space-3) var(--space-5) calc(var(--space-3) + var(--safe-bottom));
+}
+.priceCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.caption {
+  font-size: var(--fs-tiny);
+  color: var(--text-muted);
+}

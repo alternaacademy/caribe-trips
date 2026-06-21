@@ -1,0 +1,126 @@
+.card {
+  /* Reset native <button> chrome — the card is a button for keyboard a11y. */
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  background: var(--surface);
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+/* ── Featured ── */
+.featured {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.featured:active {
+  transform: scale(0.98);
+}
+.featured .media {
+  aspect-ratio: 4 / 3;
+}
+.featured .title {
+  font-size: 1.35rem;
+}
+
+/* ── Media ── */
+.media {
+  position: relative;
+  overflow: hidden;
+}
+.media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.featured .media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(6, 46, 36, 0.45) 0%, rgba(6, 46, 36, 0) 42%);
+  pointer-events: none;
+}
+
+.body {
+  padding: var(--space-4);
+}
+.eyebrow {
+  text-transform: uppercase;
+  font-size: var(--fs-tiny);
+  letter-spacing: var(--eyebrow-tracking);
+  color: var(--text-muted);
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+.title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  color: var(--text-strong);
+  margin: 0 0 var(--space-2);
+}
+.pitch {
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  line-height: var(--lh-body);
+  margin: 0 0 var(--space-3);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+.date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+
+/* ── Row ── */
+.row {
+  display: grid;
+  grid-template-columns: 104px 1fr;
+  gap: var(--space-4);
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-3);
+}
+.row:active {
+  transform: scale(0.985);
+}
+.row .media {
+  aspect-ratio: 3 / 2;
+  height: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.row .body {
+  padding: 2px 4px 2px 0;
+  display: flex;
+  flex-direction: column;
+}
+.row .title {
+  font-size: var(--fs-h3);
+  margin-bottom: var(--space-2);
+}
+.row .foot {
+  margin-top: auto;
+  padding-top: var(--space-2);
+  border-top: 0;
+  align-items: baseline;
+}

@@ -1,0 +1,76 @@
+//! The API's single error type and its JSON envelope.
+//!
+//! Every non-2xx response is `{ "error": { "code", "message" } }` so the
+//! frontend (Task 12) can decode failures uniformly.
+
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use axum::Json;
+use caribe_core::{DomainError, RepoError};
+use serde_json::json;
+
+/// All the ways an API request can fail.
+#[derive(Debug)]
+pub enum ApiError {
+    /// Input failed domain validation (400).
+    Validation(String),
+    /// The requested resource does not exist (404).
+    NotFound,
+    /// The request conflicts with current state, e.g. a duplicate or an
+    /// already-confirmed booking (409).
+    Conflict(String),
+    /// An unexpected server-side failure (500).
+    Internal(String),
+}
+
+impl ApiError {
+    /// HTTP status + stable machine `code` for this error.
+    fn parts(&self) -> (StatusCode, &'static str) {
+        match self {
+            ApiError::Validation(_) => (StatusCode::BAD_REQUEST, "validation_error"),
+            ApiError::NotFound => (StatusCode::NOT_FOUND, "not_found"),
+            ApiError::Conflict(_) => (StatusCode::CONFLICT, "conflict"),
+            ApiError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal_error"),
+        }
+    }
+
+    fn message(&self) -> String {
+        match self {
+            ApiError::Validation(m) | ApiError::Conflict(m) | ApiError::Internal(m) => m.clone(),
+            ApiError::NotFound => "resource not found".to_string(),
+        }
+    }
+}
+
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        let (status, code) = self.parts();
+        let message = self.message();
+        if status == StatusCode::INTERNAL_SERVER_ERROR {
+            tracing::error!(code, %message, "request failed");
+        }
+        let body = json!({ "error": { "code": code, "message": message } });
+        (status, Json(body)).into_response()
+    }
+}
+
+impl From<DomainError> for ApiError {
+    fn from(e: DomainError) -> Self {
+        ApiError::Validation(e.to_string())
+    }
+}
+
+impl From<RepoError> for ApiError {
+    fn from(e: RepoError) -> Self {
+        match e {
+            RepoError::NotFound => ApiError::NotFound,
+            RepoError::DuplicateCode | RepoError::AlreadyConfirmed => {
+                ApiError::Conflict(e.to_string())
+            }
+            RepoError::Mongo(_) | RepoError::Bson(_) => ApiError::Internal(e.to_string()),
+        }
+    }
+}
+
+/// Convenient `Result` alias for handlers.
+pub type ApiResult<T> = Result<T, ApiError>;

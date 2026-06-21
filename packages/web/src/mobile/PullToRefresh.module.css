@@ -1,0 +1,11 @@
+.indicator {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--green-600);
+}
+.spin {
+  padding-bottom: 8px;
+  transition: opacity var(--dur) var(--ease);
+}

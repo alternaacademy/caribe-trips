@@ -1,0 +1,32 @@
+/* Native-feel WebView reset, scoped to the Android shell (the `mobile-shell`
+   class is toggled on <html> by MobileShell). The plain web app is unaffected. */
+html.mobile-shell {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  touch-action: manipulation; /* disables double-tap zoom */
+}
+html.mobile-shell,
+html.mobile-shell body {
+  overflow-x: hidden;
+}
+/* No text selection on chrome; the full-bleed phone frame fills the screen. */
+html.mobile-shell body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+html.mobile-shell .app {
+  height: 100dvh;
+  max-width: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+/* Re-enable selection where it matters (e.g. the booking code). */
+html.mobile-shell [data-selectable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+/* Pull-to-refresh zones opt back into vertical overscroll (Task 24). */
+html.mobile-shell [data-ptr] {
+  overscroll-behavior-y: contain;
+}

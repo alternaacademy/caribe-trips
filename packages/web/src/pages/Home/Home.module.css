@@ -1,0 +1,56 @@
+.intro {
+  padding: var(--space-6) var(--space-5) var(--space-3);
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--eyebrow-tracking);
+  margin-bottom: var(--space-3);
+}
+.title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h1);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  color: var(--text-strong);
+  margin: 0;
+  max-width: 13ch;
+}
+.title em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--green-600);
+}
+
+.departures {
+  padding: 0 var(--space-5) var(--space-6);
+}
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 0 var(--space-4);
+}
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  font-weight: 600;
+  color: var(--text-strong);
+  margin: 0;
+}
+.sectionMeta {
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+}
+.monthList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}

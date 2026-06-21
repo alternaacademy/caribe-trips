@@ -1,0 +1,26 @@
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--fs-body);
+  color: var(--text-strong);
+  line-height: var(--lh-body);
+  list-style: none;
+}
+.icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--success-bg);
+  color: var(--success);
+}
+.excluded {
+  color: var(--text-muted);
+}
+.excluded .icon {
+  background: var(--green-50);
+  color: var(--text-faint);
+}

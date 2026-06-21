@@ -1,0 +1,103 @@
+.code {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.pkg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.thumb {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--sand-bg);
+  border: 1px solid var(--border);
+}
+.pkgText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.pkgName {
+  font-weight: 600;
+  color: var(--text-strong);
+  line-height: 1.2;
+}
+.pkgDest {
+  font-size: var(--fs-tiny);
+  color: var(--text-faint);
+}
+.total {
+  font-weight: 700;
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+.contact {
+  display: flex;
+  flex-direction: column;
+}
+.contactName {
+  color: var(--text-strong);
+}
+.tel {
+  font-size: var(--fs-tiny);
+  color: var(--green-600);
+  text-decoration: none;
+}
+.tel:hover {
+  text-decoration: underline;
+}
+.paid {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-faint);
+  font-size: var(--fs-tiny);
+}
+
+/* Left accent on rows by status. */
+.rowPending td:first-child {
+  box-shadow: inset 3px 0 0 var(--pending);
+}
+.rowConfirmed td:first-child {
+  box-shadow: inset 3px 0 0 var(--green-200);
+}
+
+.loading {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.confirmBody {
+  font-size: var(--fs-small);
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+.amount {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+.name {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  /* Stacked cards: drop the left accent, make confirm full-width. */
+  .rowPending td:first-child,
+  .rowConfirmed td:first-child {
+    box-shadow: none;
+  }
+  .pkg {
+    justify-content: flex-end;
+  }
+}

@@ -1,0 +1,25 @@
+.banner {
+  flex: 0 0 auto;
+  text-align: center;
+  background: var(--pending-bg);
+  color: var(--pending);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  padding: 6px var(--space-4);
+  border-bottom: 1px solid color-mix(in srgb, var(--pending) 25%, transparent);
+}
+.exitToast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(72px + var(--safe-bottom));
+  transform: translateX(-50%);
+  z-index: 40;
+  background: var(--green-700);
+  color: #fff;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  padding: 10px var(--space-5);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lg);
+  white-space: nowrap;
+}

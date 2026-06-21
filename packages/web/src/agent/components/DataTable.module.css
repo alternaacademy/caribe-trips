@@ -1,0 +1,108 @@
+.wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  background: var(--surface);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--surface);
+  text-align: left;
+  font-size: var(--fs-tiny);
+  text-transform: uppercase;
+  letter-spacing: var(--eyebrow-tracking);
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: var(--space-2) 6px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.num {
+  text-align: right;
+}
+.ctr {
+  text-align: center;
+}
+.row td {
+  padding: var(--space-2) 6px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  vertical-align: middle;
+}
+.row:last-child td {
+  border-bottom: 0;
+}
+.row:nth-child(even) {
+  background: #fcfaf6;
+}
+.row:hover {
+  background: var(--green-50);
+}
+
+.mobileLabel {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .table thead {
+    display: none;
+  }
+  .table,
+  .table tbody,
+  .row,
+  .row td {
+    display: block;
+    width: 100%;
+  }
+  .wrap {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+  .row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    box-shadow: var(--shadow-sm);
+  }
+  .row:nth-child(even),
+  .row:hover {
+    background: var(--surface);
+  }
+  .row td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: 10px var(--space-2);
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+  }
+  .row td:last-child {
+    border-bottom: 0;
+  }
+  .num,
+  .ctr {
+    text-align: right;
+  }
+  .mobileLabel {
+    display: inline;
+    font-size: var(--fs-tiny);
+    text-transform: uppercase;
+    letter-spacing: var(--eyebrow-tracking);
+    color: var(--text-faint);
+    font-weight: 600;
+    flex: 0 0 auto;
+    text-align: left;
+  }
+}

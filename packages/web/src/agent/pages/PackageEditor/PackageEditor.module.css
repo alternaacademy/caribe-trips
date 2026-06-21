@@ -1,0 +1,108 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+@media (max-width: 880px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.group {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+.groupTitle {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text-strong);
+  padding: 0 var(--space-1);
+}
+.lineRow,
+.depRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.lineInput,
+.depDate,
+.depPrice {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: 1rem;
+  color: var(--text-strong);
+}
+.depPrice {
+  flex: 0 0 110px;
+}
+.lineInput:focus,
+.depDate:focus,
+.depPrice:focus {
+  outline: 0;
+  border-color: var(--green-400);
+  box-shadow: 0 0 0 3px rgba(46, 166, 131, 0.18);
+}
+.fieldError {
+  font-size: var(--fs-tiny);
+  color: var(--error);
+  margin: 0;
+}
+.featuredRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.previewPane {
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.previewLabel {
+  font-size: var(--fs-tiny);
+  text-transform: uppercase;
+  letter-spacing: var(--eyebrow-tracking);
+  font-weight: 600;
+  color: var(--text-faint);
+}
+.previewFrame {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--sand-bg);
+  max-width: 420px;
+}
+
+.actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) 0 0;
+  margin-top: var(--space-4);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}

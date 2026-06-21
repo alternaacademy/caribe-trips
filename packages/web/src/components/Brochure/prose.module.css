@@ -1,0 +1,56 @@
+/* Markdown ("Sobre este viaje") — serif headings, sans body, token spacing.
+   CSS Modules scopes only `.prose`; the element selectors below pass through. */
+.prose {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text-strong);
+}
+.prose h1,
+.prose h2,
+.prose h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  color: var(--text-strong);
+  margin: var(--space-4) 0 var(--space-2);
+}
+.prose h1 {
+  font-size: var(--fs-h2);
+}
+.prose h2 {
+  font-size: var(--fs-h3);
+}
+.prose h3 {
+  font-size: var(--fs-body);
+}
+.prose p {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+}
+.prose ul,
+.prose ol {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-5);
+  color: var(--text-muted);
+}
+.prose li {
+  margin-bottom: var(--space-1);
+}
+.prose strong {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+.prose a {
+  color: var(--green-600);
+}
+.prose blockquote {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--green-200);
+  color: var(--text-muted);
+  font-style: italic;
+}
+.prose > :first-child {
+  margin-top: 0;
+}

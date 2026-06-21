@@ -1,0 +1,10 @@
+.loading {
+  display: flex;
+  flex-direction: column;
+}
+.loadingBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}

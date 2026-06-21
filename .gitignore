@@ -1,5 +1,32 @@
 notes/
 
+# Rust
+/target/
+**/target/
+
+# Node / pnpm
+node_modules/
+dist/
+.pnpm-store/
+
+# Playwright
+test-results/
+playwright-report/
+.playwright-mcp/
+
+# Tauri / Android build artifacts (gen/ is regenerable via `cargo tauri android init`)
+crates/mobile/gen/android/.gradle/
+crates/mobile/gen/android/build/
+crates/mobile/gen/android/app/build/
+crates/mobile/gen/android/app/.cxx/
+crates/mobile/gen/android/app/src/main/jniLibs/
+crates/mobile/gen/android/local.properties
+crates/mobile/app-icon.png
+
+# Env / logs
+.env
+*.log
+
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db

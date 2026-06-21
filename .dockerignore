@@ -1,0 +1,16 @@
+.git
+target
+**/target
+node_modules
+**/node_modules
+packages/web/dist
+crates/mobile/gen
+crates/mobile/app-icon.png
+test-results
+playwright-report
+.playwright-mcp
+**/.playwright-mcp
+.beads
+notes
+*.log
+.env

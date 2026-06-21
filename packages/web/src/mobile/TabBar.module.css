@@ -1,0 +1,30 @@
+.tabbar {
+  flex: 0 0 auto;
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: var(--safe-bottom);
+  z-index: 30;
+}
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 56px;
+  padding: 8px 0;
+  color: var(--text-faint);
+  text-decoration: none;
+  font-size: var(--fs-tiny);
+  font-weight: 500;
+  transition: color var(--dur) var(--ease);
+}
+.active {
+  color: var(--green-700);
+  font-weight: 600;
+}
+.label {
+  line-height: 1;
+}
