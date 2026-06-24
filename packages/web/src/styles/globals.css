@@ -61,6 +61,10 @@
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --dur: 180ms;
   --container: 480px;
+  /* Customer desktop: the phone frame gives way to this content column. */
+  --container-wide: 1080px;
+  /* Comfortable reading width for deep customer pages on desktop. */
+  --container-read: 720px;
   /* Backoffice-only: wider desktop content column. */
   --container-agent: 1024px;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -196,6 +200,33 @@ button {
 }
 .icon-btn:active {
   background: var(--green-50);
+}
+
+/* ── Desktop / wide layout ──────────────────────────────────────────────
+   Above the phone breakpoint the customer app drops its device frame and
+   becomes a full-height web app shell: a fixed top header over a wide,
+   scrolling content pane (same pattern as the agent backoffice). The phone
+   studio backdrop, rounded frame and 480px cap are all removed; route
+   content reflows into the wider column via each page's own module. */
+@media (min-width: 760px) {
+  .app-stage {
+    padding: 0;
+    background: var(--sand-bg);
+  }
+  .app {
+    max-width: var(--container-wide);
+    height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+    background: var(--sand-bg);
+  }
+  .app-bar {
+    padding: var(--space-4) var(--space-6);
+    border-bottom-color: var(--border);
+  }
+  .app-bar__brand {
+    font-size: 1.65rem;
+  }
 }
 
 /* ── Agent backoffice shell (placeholder until Task 18) ────────────────── */

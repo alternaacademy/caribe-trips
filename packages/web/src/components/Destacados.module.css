@@ -33,3 +33,19 @@
   max-width: 320px;
   scroll-snap-align: start;
 }
+
+/* ── Desktop: a static grid replaces the swipe carousel ── */
+@media (min-width: 760px) {
+  .carousel {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    overflow: visible;
+  }
+  .slide {
+    flex: none;
+    max-width: none;
+  }
+  .meta {
+    display: none; /* "Desliza →" is meaningless without horizontal scroll */
+  }
+}

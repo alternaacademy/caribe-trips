@@ -54,3 +54,22 @@
   gap: var(--space-4);
   margin-bottom: var(--space-6);
 }
+
+/* ── Desktop ── */
+@media (min-width: 760px) {
+  .intro {
+    padding-top: var(--space-8);
+  }
+  .title {
+    font-size: var(--fs-display);
+    max-width: 20ch;
+  }
+  .departures {
+    padding-bottom: var(--space-8);
+  }
+  /* Row cards reflow into a multi-column grid instead of one tall column. */
+  .monthList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  }
+}
