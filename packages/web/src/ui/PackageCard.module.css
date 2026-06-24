@@ -104,8 +104,12 @@
   transform: scale(0.985);
 }
 .row .media {
-  aspect-ratio: 3 / 2;
+  /* Fill the fixed 104px column at full card height (cropped by object-fit).
+     No aspect-ratio here: combined with height:100% it would derive a width
+     from the stretched height and overflow the track onto the title text. */
+  width: 104px;
   height: 100%;
+  min-width: 0;
   border-radius: var(--radius-md);
   overflow: hidden;
 }
