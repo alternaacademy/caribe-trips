@@ -14,6 +14,14 @@ pub struct Config {
     pub web_origin: String,
     /// Optional second allowed origin, e.g. a LAN IP for on-device Android.
     pub extra_origin: Option<String>,
+    /// Base URL of the Ollama server backing the concierge.
+    pub ollama_url: String,
+    /// Ollama model used for recommendations.
+    pub ollama_model: String,
+    /// Hard timeout for a single recommendation call.
+    pub ollama_timeout_ms: u64,
+    /// Kill switch: when false, `/api/recommend` reports itself unavailable.
+    pub concierge_enabled: bool,
 }
 
 impl Config {
@@ -27,6 +35,14 @@ impl Config {
             extra_origin: std::env::var("CORS_EXTRA_ORIGIN")
                 .ok()
                 .filter(|s| !s.is_empty()),
+            // The tailnet FQDN, not the short name: Docker containers resolve
+            // via Docker's own resolver, which has no tailnet search domain.
+            ollama_url: env_or("OLLAMA_URL", "http://gauss.icefish-vector.ts.net:11434"),
+            ollama_model: env_or("OLLAMA_MODEL", "gemma4:31b"),
+            ollama_timeout_ms: env_or("OLLAMA_TIMEOUT_MS", "60000")
+                .parse()
+                .unwrap_or(60_000),
+            concierge_enabled: env_or("CONCIERGE_ENABLED", "true") != "false",
         }
     }
 

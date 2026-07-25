@@ -9,6 +9,7 @@ import {
   listPackages,
   updatePackage,
 } from './packages';
+import { recommend } from './recommend';
 import type { BookingStatus, NewPackage, UpdatePackage } from './types';
 
 /* ── Queries ──────────────────────────────────────────────────────────── */
@@ -44,6 +45,12 @@ export function useBookingByCode(code: string) {
 }
 
 /* ── Mutations ────────────────────────────────────────────────────────── */
+
+/** The AI concierge. A mutation, not a query: it's an explicit, expensive
+ *  (~15 s) action the traveler triggers, never something that fires on typing. */
+export function useRecommend() {
+  return useMutation({ mutationFn: recommend });
+}
 
 export function useCreateBooking() {
   const qc = useQueryClient();

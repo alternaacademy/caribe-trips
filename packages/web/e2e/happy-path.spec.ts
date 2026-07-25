@@ -11,17 +11,23 @@ test('customer books and agent confirms; agent creates a package shown on Home',
   await expect(page.getByRole('heading', { name: 'Junio 2026' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Julio 2026' })).toBeVisible();
 
-  // 2 — Filter by destination, then clear.
+  // 2 — Filter by destination, then clear. Browsing must work with no AI
+  // involvement at all: the concierge is disabled for this run.
   await page.getByRole('button', { name: 'Samaná', exact: true }).click();
   await expect(page).toHaveURL(/destination=Samana/);
   await expect(page.getByRole('button', { name: 'Buceo en Bayahíbe' })).toHaveCount(0);
-  // Text search narrows to the diving package.
-  await page.getByPlaceholder('¿A dónde quieres ir?').fill('buceo');
-  await expect(page.getByRole('button', { name: 'Todos', exact: true })).toBeVisible();
-  await page.getByPlaceholder('¿A dónde quieres ir?').fill('');
   await page.getByRole('button', { name: 'Todos', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Buceo en Bayahíbe' }).first()).toBeVisible();
 
-  // 3 — Brochure → Reservar → pick date + people → contact → submit.
+  // 3 — Concierge unavailable degrades to a note, never an error page.
+  await page
+    .getByLabel('Cuéntanos qué viaje buscas')
+    .fill('Algo tranquilo cerca del mar para dos personas');
+  await page.getByRole('button', { name: 'Recomiéndame' }).click();
+  await expect(page.getByText('Asesor no disponible')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Destacados' })).toBeVisible();
+
+  // 4 — Brochure → Reservar → pick date + people → contact → submit.
   await page.getByRole('button', { name: 'Escapada a Samaná' }).first().click();
   await expect(page).toHaveURL(/\/packages\//);
   await page.getByRole('button', { name: 'Reservar' }).click();
@@ -40,7 +46,7 @@ test('customer books and agent confirms; agent creates a package shown on Home',
   const code = (await page.url()).split('/booking/')[1];
   expect(code).toMatch(/^CB-[A-Z0-9]{4}$/);
 
-  // 4 — Agent confirms the payment.
+  // 5 — Agent confirms the payment.
   await page.goto('/agent/bookings');
   const row = page.getByRole('row').filter({ hasText: code });
   await expect(row).toBeVisible();
@@ -54,7 +60,7 @@ test('customer books and agent confirms; agent creates a package shown on Home',
   await page.goto(`/booking/${code}`);
   await expect(page.getByText('¡Reserva confirmada!')).toBeVisible();
 
-  // 5 — Agent creates a package; it appears on the customer Home.
+  // 6 — Agent creates a package; it appears on the customer Home.
   const title = `Tour E2E ${code}`;
   await page.goto('/agent/packages/new');
   await page.getByLabel('Título').fill(title);

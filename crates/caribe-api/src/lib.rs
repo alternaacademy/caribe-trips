@@ -5,6 +5,7 @@
 //! binary (`main.rs`) is a thin wrapper over this.
 
 pub mod app;
+pub mod concierge;
 pub mod config;
 pub mod error;
 pub mod routes;

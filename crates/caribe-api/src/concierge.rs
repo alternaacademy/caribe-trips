@@ -1,0 +1,261 @@
+//! Free-text intent in, one recommended package plus two alternatives out.
+//!
+//! The model only ever *chooses*: it returns catalog positions, which are
+//! re-checked here, and every rendered price/date/title comes from Mongo. A
+//! hallucination therefore cannot become a wrong commercial offer.
+
+use std::time::Duration;
+
+use caribe_core::Package;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
+
+use crate::config::Config;
+
+/// Every field is `required` — the model silently drops optional ones.
+/// Choices are 1-based catalog positions rather than Mongo ids: a 24-char hex id
+/// costs ~12 tokens, and at ~8 tok/s three of them added ~4 s per call.
+fn response_schema() -> serde_json::Value {
+    json!({
+        "type": "object",
+        "properties": {
+            "pick":           { "type": "integer" },
+            "headline":       { "type": "string" },
+            "why":            { "type": "string" },
+            "considerations": { "type": "string" },
+            "alsoConsider":   { "type": "array", "items": { "type": "integer" } },
+            "confidence":     { "type": "number" }
+        },
+        "required": ["pick", "headline", "why", "considerations", "alsoConsider", "confidence"]
+    })
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ModelChoice {
+    pick: i64,
+    headline: String,
+    why: String,
+    #[serde(default)]
+    considerations: String,
+    #[serde(default)]
+    also_consider: Vec<i64>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Recommendation {
+    pub package: Package,
+    pub headline: String,
+    pub why: String,
+    pub considerations: String,
+    pub also_consider: Vec<Package>,
+    pub model: String,
+    pub elapsed_ms: u64,
+}
+
+/// Every variant degrades the UI to plain browsing, never an error page.
+#[derive(Debug)]
+pub enum ConciergeError {
+    Disabled,
+    Unreachable(String),
+    BadResponse(String),
+    UngroundedChoice(i64),
+}
+
+impl std::fmt::Display for ConciergeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ConciergeError::Disabled => write!(f, "concierge is disabled"),
+            ConciergeError::Unreachable(m) => write!(f, "model unreachable: {m}"),
+            ConciergeError::BadResponse(m) => write!(f, "unusable model response: {m}"),
+            ConciergeError::UngroundedChoice(n) => {
+                write!(f, "model chose catalog position {n}, which does not exist")
+            }
+        }
+    }
+}
+
+/// Register: unspecified, the model reaches for street slang ("mi hermano").
+/// Length: at ~8 tok/s an unbounded sentence costs real seconds — the character
+/// limits below took a measured answer from 268 tokens to 194.
+const SYSTEM_PROMPT: &str = "\
+Eres el asesor de viajes de Caribe Trips, una agencia dominicana.
+Elige UNA experiencia del catálogo que mejor encaje con lo que cuenta el viajero,
+y luego dos alternativas distintas.
+
+Reglas:
+- Elige solo por el número de la lista. `pick` y `alsoConsider` son números del catálogo.
+- `alsoConsider`: exactamente dos números, distintos al principal.
+- Español neutro y cálido, trato de usted. Sin jerga ni modismos callejeros.
+- No inventes precios, fechas ni servicios: usa solo lo que aparece en el catálogo.
+- `headline`: máximo 60 caracteres.
+- `why`: máximo 180 caracteres, una sola oración, sin repetir lo que dijo el viajero.
+- `considerations`: máximo 120 caracteres, una sola oración honesta sobre duración,
+  presupuesto o esfuerzo. Si nada cumple lo pedido, recomienda lo más cercano y dilo aquí.";
+
+/// One line per package, numbered from 1 to match `pick`.
+fn catalog_block(packages: &[Package]) -> String {
+    packages
+        .iter()
+        .enumerate()
+        .map(|(i, p)| {
+            let dates = p
+                .departures
+                .iter()
+                .map(|d| d.date.to_string())
+                .collect::<Vec<_>>()
+                .join(", ");
+            format!(
+                "{n}) \"{title}\" | {dest:?} | desde RD${price} | {pitch} | salidas: {dates}",
+                n = i + 1,
+                title = p.title,
+                dest = p.destination,
+                price = p.price_from,
+                pitch = p.short_pitch,
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// Ask the model to pick, then re-hydrate its choices from `packages`.
+pub async fn recommend(
+    config: &Config,
+    packages: &[Package],
+    intent: &str,
+) -> Result<Recommendation, ConciergeError> {
+    if !config.concierge_enabled {
+        return Err(ConciergeError::Disabled);
+    }
+    if packages.is_empty() {
+        return Err(ConciergeError::BadResponse("empty catalog".into()));
+    }
+
+    let body = json!({
+        "model": config.ollama_model,
+        "stream": false,
+        // Thinking model: left on, it spends the whole budget in `thinking`
+        // and returns an empty `content`.
+        "think": false,
+        "format": response_schema(),
+        "options": { "temperature": 0.3, "num_predict": 600 },
+        "messages": [
+            { "role": "system", "content": SYSTEM_PROMPT },
+            { "role": "user", "content": format!(
+                "CATÁLOGO:\n{}\n\nEL VIAJERO ESCRIBE:\n{}",
+                catalog_block(packages),
+                intent
+            ) }
+        ]
+    });
+
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_millis(config.ollama_timeout_ms))
+        .build()
+        .map_err(|e| ConciergeError::Unreachable(e.to_string()))?;
+
+    let started = std::time::Instant::now();
+    let resp = client
+        .post(format!("{}/api/chat", config.ollama_url.trim_end_matches('/')))
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| ConciergeError::Unreachable(e.to_string()))?;
+
+    if !resp.status().is_success() {
+        return Err(ConciergeError::Unreachable(format!(
+            "ollama returned {}",
+            resp.status()
+        )));
+    }
+
+    let envelope: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| ConciergeError::BadResponse(e.to_string()))?;
+    let content = envelope
+        .pointer("/message/content")
+        .and_then(|v| v.as_str())
+        .unwrap_or_default();
+    if content.trim().is_empty() {
+        return Err(ConciergeError::BadResponse("empty content".into()));
+    }
+    let choice: ModelChoice =
+        serde_json::from_str(content).map_err(|e| ConciergeError::BadResponse(e.to_string()))?;
+
+    let at = |n: i64| {
+        usize::try_from(n)
+            .ok()
+            .and_then(|n| n.checked_sub(1))
+            .and_then(|i| packages.get(i))
+            .cloned()
+    };
+
+    // Unknown secondaries are dropped rather than failing the whole response.
+    let package = at(choice.pick).ok_or(ConciergeError::UngroundedChoice(choice.pick))?;
+    let also_consider: Vec<Package> = choice
+        .also_consider
+        .iter()
+        .filter(|n| **n != choice.pick)
+        .filter_map(|n| at(*n))
+        .take(2)
+        .collect();
+
+    Ok(Recommendation {
+        package,
+        headline: choice.headline,
+        why: choice.why,
+        considerations: choice.considerations,
+        also_consider,
+        model: config.ollama_model.clone(),
+        elapsed_ms: started.elapsed().as_millis() as u64,
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use caribe_core::{Departure, Destination};
+
+    fn pkg(id: &str, title: &str) -> Package {
+        Package {
+            id: Some(id.to_string()),
+            title: title.to_string(),
+            destination: Destination::Samana,
+            hero_image: String::new(),
+            gallery: vec![],
+            short_pitch: "Pitch".into(),
+            description_md: String::new(),
+            included: vec![],
+            not_included: vec![],
+            departures: vec![Departure {
+                date: "2026-08-09".parse().unwrap(),
+                price: 1000,
+            }],
+            price_from: 1000,
+            featured: false,
+        }
+    }
+
+    #[test]
+    fn catalog_block_numbers_entries_from_one() {
+        let block = catalog_block(&[pkg("abc", "Escapada"), pkg("def", "Saona")]);
+        assert!(block.starts_with("1) \"Escapada\""), "got {block}");
+        assert!(block.contains("2) \"Saona\""), "got {block}");
+        assert!(block.contains("RD$1000"), "got {block}");
+        assert!(block.contains("2026-08-09"), "got {block}");
+    }
+
+    #[test]
+    fn schema_requires_every_field_we_read() {
+        let schema = response_schema();
+        let required = schema["required"].as_array().unwrap();
+        for field in ["pick", "headline", "why", "considerations", "alsoConsider"] {
+            assert!(
+                required.iter().any(|v| v == field),
+                "{field} must be required"
+            );
+        }
+    }
+}

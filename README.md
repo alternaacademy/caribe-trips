@@ -5,8 +5,9 @@ manual payments and manage packages from a backoffice. One React SPA (also wrapp
 Android app) talks to a Rust/Axum API over MongoDB.
 
 - **Customer app** — Spanish brochure UI (English routes): home listing grouped by month with a
-  *Destacados* strip, search + destination filters, package brochure, booking flow, and a
-  confirmation screen with manual-payment instructions.
+  *Destacados* strip, an **AI concierge** that turns free text into a recommendation, destination
+  filters, package brochure, booking flow, and a confirmation screen with manual-payment
+  instructions.
 - **Agent backoffice** (`/agent`) — a dense, calm tool: bookings worklist with a "Confirmar pago"
   flow, and package CRUD with a two-pane markdown editor + live brochure preview.
 
@@ -81,6 +82,7 @@ API (`.env.example` at repo root):
 | `API_BIND` | `0.0.0.0:8080` | API listen address |
 | `WEB_ORIGIN` | `http://localhost:5173` | allowed CORS origin (the SPA) |
 | `CORS_EXTRA_ORIGIN` | — | optional second CORS origin (e.g. a LAN IP for on-device Android) |
+| `OLLAMA_URL` / `OLLAMA_MODEL` | see "AI concierge" | local model backing `/api/recommend` |
 | `MONGO_PORT` / `MONGO_EXPRESS_PORT` | `27017` / `8081` | host ports docker-compose publishes |
 
 Web (`packages/web/.env`): `VITE_API_BASE_URL` (default `http://localhost:8080/api`).
@@ -97,6 +99,40 @@ Web (`packages/web/.env`): `VITE_API_BASE_URL` (default `http://localhost:8080/a
 | `just build` | release build (cargo + web) |
 | `just e2e` | full-stack Playwright happy-path against an isolated, reset-seeded DB |
 | `just android-dev` / `just android-build` | Tauri Android (requires the Android toolchain — Task 22) |
+
+## AI concierge
+
+The home search box is a free-text field: travelers describe the trip they want (budget, who's
+coming, how much effort) and a **local Gemma via Ollama** picks one experience from the catalog
+plus two smaller alternatives.
+
+The model only ever *chooses*. It is handed a numbered catalog and returns positions; the server
+re-checks each one and re-hydrates the real package from MongoDB, so every price, date and title
+on screen comes from the database and never from the model.
+
+```
+browser ──POST /api/recommend──▶ caribe-api ──/api/chat──▶ ollama (gemma4:31b)
+```
+
+| Var | Default | Purpose |
+|-----|---------|---------|
+| `OLLAMA_URL` | `http://gauss.icefish-vector.ts.net:11434` | Ollama base URL |
+| `OLLAMA_MODEL` | `gemma4:31b` | model used for recommendations |
+| `OLLAMA_TIMEOUT_MS` | `60000` | hard per-request timeout |
+| `CONCIERGE_ENABLED` | `true` | kill switch; `false` makes the endpoint report unavailable |
+
+A recommendation takes **~16 s** on the reference machine (an RTX-class desktop reachable over
+Tailscale), so the request is explicit — never debounce-on-type — and the UI shows a skeleton
+while it runs. If Ollama is unreachable the endpoint returns **503** and the page degrades to
+plain browsing (destination chips + grid) rather than showing an error.
+
+Two things are load-bearing and easy to regress: the request must send `"think": false`
+(`gemma4:31b` otherwise spends its whole token budget in a `thinking` field and returns empty
+content), and every field the server reads must be listed as `required` in the JSON schema, since
+the model silently omits optional ones.
+
+Use the tailnet **FQDN**, not the short host name — containers resolve through Docker's own
+resolver, which has no tailnet search domain, so `http://gauss:11434` fails from inside compose.
 
 ## Testing
 

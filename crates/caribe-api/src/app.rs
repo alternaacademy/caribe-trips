@@ -20,7 +20,8 @@ pub fn router(state: AppState, config: &Config) -> Router {
     let api = Router::new()
         .route("/health", get(health))
         .merge(routes::packages::routes())
-        .merge(routes::bookings::routes());
+        .merge(routes::bookings::routes())
+        .merge(routes::recommend::routes());
 
     Router::new()
         .nest("/api", api)

@@ -2,6 +2,7 @@
 
 pub mod bookings;
 pub mod packages;
+pub mod recommend;
 
 use serde_json::Value;
 

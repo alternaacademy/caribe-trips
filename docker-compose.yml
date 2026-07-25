@@ -35,6 +35,12 @@ services:
       API_BIND: 0.0.0.0:8080
       # The browser origin that must be allowed by CORS (the web service below).
       WEB_ORIGIN: "http://localhost:${WEB_PORT:-5173}"
+      # FQDN, not the short name: the container's resolver has no tailnet
+      # search domain, so `gauss` alone does not resolve.
+      OLLAMA_URL: "${OLLAMA_URL:-http://gauss.icefish-vector.ts.net:11434}"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-gemma4:31b}"
+      OLLAMA_TIMEOUT_MS: "${OLLAMA_TIMEOUT_MS:-60000}"
+      CONCIERGE_ENABLED: "${CONCIERGE_ENABLED:-true}"
       RUST_LOG: info
     ports:
       - "${API_PORT:-8080}:8080"

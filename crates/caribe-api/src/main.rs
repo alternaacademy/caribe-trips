@@ -60,7 +60,10 @@ async fn main() -> anyhow::Result<()> {
     let outcome = seed(&db, SeedMode::IfEmpty).await.context("startup seed")?;
     tracing::info!(?outcome, "startup seed");
 
-    let state = AppState { db };
+    let state = AppState {
+        db,
+        config: std::sync::Arc::new(config.clone()),
+    };
     let router = app::router(state, &config);
 
     let listener = tokio::net::TcpListener::bind(&config.api_bind)

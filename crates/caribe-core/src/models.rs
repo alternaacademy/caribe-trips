@@ -13,10 +13,46 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "schema", derive(ts_rs::TS))]
 pub enum Destination {
+    // Dominican Republic
     PuntaCana,
     Samana,
     Bayahibe,
     LaRomana,
+    Constanza,
+    Jarabacoa,
+    PuertoPlata,
+    Barahona,
+    // Greater Antilles
+    Habana,
+    Varadero,
+    SanJuan,
+    Vieques,
+    MontegoBay,
+    Negril,
+    PortAuPrince,
+    // Bahamas & Turks
+    Nassau,
+    Exuma,
+    ProvidencialesTC,
+    // Lesser Antilles
+    Aruba,
+    Curazao,
+    Barbados,
+    SantaLucia,
+    Granada,
+    Martinica,
+    Guadalupe,
+    SanMartin,
+    Dominica,
+    Antigua,
+    Tobago,
+    // Caribbean rim
+    Cartagena,
+    SanAndres,
+    Roatan,
+    Belice,
+    Tulum,
+    BocasDelToro,
 }
 
 /// Lifecycle of a booking. Variant names are the exact wire strings.

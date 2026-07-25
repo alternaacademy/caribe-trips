@@ -1,9 +1,13 @@
-import { usePackages } from '@/api/hooks';
+import { usePackages, useRecommend } from '@/api/hooks';
 import type { Package } from '@/api/types';
+import {
+  ConciergeResult,
+  ConciergeSkeleton,
+  ConciergeUnavailable,
+} from '@/components/ConciergeResult';
 import { Destacados } from '@/components/Destacados';
 import { DestinationChips } from '@/components/DestinationChips';
-import { SearchField } from '@/components/SearchField';
-import { useDebouncedValue } from '@/lib/useDebouncedValue';
+import { IntentField } from '@/components/IntentField';
 import { ErrorCard } from '@/mobile/ErrorCard';
 import { Offline } from '@/mobile/Offline';
 import { PullToRefresh } from '@/mobile/PullToRefresh';
@@ -11,30 +15,34 @@ import { isMobileShell } from '@/mobile/platform';
 import { useOnline } from '@/mobile/useOnline';
 import { EmptyState, MonthHeader, PackageCard, PackageCardSkeleton } from '@/ui';
 import { MapPinIcon } from '@/ui/icons';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Home.module.css';
 import { buildMonthGroups, totalDepartures } from './monthGroups';
 import { useFilters } from './useFilters';
 
+/** Matches MIN_INTENT_CHARS on the API. */
+const MIN_INTENT = 10;
+
 export function Home() {
   const navigate = useNavigate();
-  const { destination, q, setDestination, setQ, reset } = useFilters();
+  const { destination, setDestination, reset } = useFilters();
 
-  // Local input value is immediate; the debounced value drives the URL + query.
-  const [text, setText] = useState(q);
-  const debouncedText = useDebouncedValue(text, 300);
-  useEffect(() => {
-    if (debouncedText !== q) setQ(debouncedText);
-  }, [debouncedText, q, setQ]);
+  const [intent, setIntent] = useState('');
+  const concierge = useRecommend();
 
-  const { data: packages, isLoading, isError, refetch } = usePackages({ destination, q });
-  const searching = q.trim().length > 0;
+  const { data: packages, isLoading, isError, refetch } = usePackages({ destination });
   const mobile = isMobileShell();
   const online = useOnline();
 
+  const askConcierge = () => {
+    const text = intent.trim();
+    if (text.length >= MIN_INTENT) concierge.mutate(text);
+  };
+
   const clearAll = () => {
-    setText('');
+    setIntent('');
+    concierge.reset();
     reset();
   };
 
@@ -49,7 +57,6 @@ export function Home() {
     body = (
       <HomeContent
         packages={packages}
-        searching={searching}
         onOpen={(id) => navigate(`/packages/${id}`)}
         onReset={clearAll}
       />
@@ -61,14 +68,25 @@ export function Home() {
       <section className={styles.intro}>
         <span className={styles.eyebrow}>
           <MapPinIcon size={14} />
-          República Dominicana
+          El Caribe
         </span>
         <h1 className={styles.title}>
           Tu próximo <em>paraíso</em>, a un toque
         </h1>
       </section>
 
-      <SearchField value={text} onChange={setText} onClear={clearAll} />
+      <IntentField
+        value={intent}
+        onChange={setIntent}
+        onSubmit={askConcierge}
+        pending={concierge.isPending}
+        minChars={MIN_INTENT}
+      />
+
+      {concierge.isPending && <ConciergeSkeleton />}
+      {concierge.isError && <ConciergeUnavailable onRetry={askConcierge} />}
+      {concierge.isSuccess && !concierge.isPending && <ConciergeResult result={concierge.data} />}
+
       <DestinationChips active={destination} onSelect={setDestination} />
 
       {mobile ? <PullToRefresh onRefresh={() => refetch()}>{body}</PullToRefresh> : body}
@@ -78,12 +96,10 @@ export function Home() {
 
 function HomeContent({
   packages,
-  searching,
   onOpen,
   onReset,
 }: {
   packages: Package[];
-  searching: boolean;
   onOpen: (id: string) => void;
   onReset: () => void;
 }) {
@@ -104,8 +120,7 @@ function HomeContent({
 
   return (
     <>
-      {/* Destacados hides while a text search is active (reference behavior). */}
-      {!searching && <Destacados packages={featured} />}
+      <Destacados packages={featured} />
 
       <section className={styles.departures} aria-labelledby="departures-head">
         <div className={styles.sectionHead}>

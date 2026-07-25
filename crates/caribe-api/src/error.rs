@@ -21,6 +21,10 @@ pub enum ApiError {
     Conflict(String),
     /// An unexpected server-side failure (500).
     Internal(String),
+    /// The AI concierge could not produce a recommendation (503). Deliberately
+    /// distinct from `Internal`: the client degrades to browsing rather than
+    /// treating it as a bug.
+    ConciergeUnavailable,
 }
 
 impl ApiError {
@@ -31,6 +35,9 @@ impl ApiError {
             ApiError::NotFound => (StatusCode::NOT_FOUND, "not_found"),
             ApiError::Conflict(_) => (StatusCode::CONFLICT, "conflict"),
             ApiError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal_error"),
+            ApiError::ConciergeUnavailable => {
+                (StatusCode::SERVICE_UNAVAILABLE, "concierge_unavailable")
+            }
         }
     }
 
@@ -38,6 +45,9 @@ impl ApiError {
         match self {
             ApiError::Validation(m) | ApiError::Conflict(m) | ApiError::Internal(m) => m.clone(),
             ApiError::NotFound => "resource not found".to_string(),
+            ApiError::ConciergeUnavailable => {
+                "el asesor no está disponible en este momento".to_string()
+            }
         }
     }
 }

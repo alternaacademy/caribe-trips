@@ -27,6 +27,11 @@ fn test_config() -> Config {
         api_bind: "127.0.0.1:0".into(),
         web_origin: "http://localhost:5173".into(),
         extra_origin: None,
+        ollama_url: "http://127.0.0.1:1".into(),
+        ollama_model: "test-model".into(),
+        ollama_timeout_ms: 1_000,
+        // Integration tests must never reach out to a real model.
+        concierge_enabled: false,
     }
 }
 
@@ -37,7 +42,13 @@ async fn app_with_fresh_db(name: &str) -> Option<Router> {
     let db = Db::connect(&uri, name).await.expect("connect");
     db.drop_database().await.expect("drop");
     db.ensure_indexes().await.expect("indexes");
-    Some(app::router(AppState { db }, &test_config()))
+    Some(app::router(
+        AppState {
+            db,
+            config: std::sync::Arc::new(test_config()),
+        },
+        &test_config(),
+    ))
 }
 
 /// Send a request through the router and decode `(status, json)`.

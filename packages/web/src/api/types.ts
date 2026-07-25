@@ -2,7 +2,7 @@
 // Source of truth: crates/caribe-core/src/models.rs.
 // Regenerate with `just gen-types`.
 
-export type Destination = "PuntaCana" | "Samana" | "Bayahibe" | "LaRomana";
+export type Destination = "PuntaCana" | "Samana" | "Bayahibe" | "LaRomana" | "Constanza" | "Jarabacoa" | "PuertoPlata" | "Barahona" | "Habana" | "Varadero" | "SanJuan" | "Vieques" | "MontegoBay" | "Negril" | "PortAuPrince" | "Nassau" | "Exuma" | "ProvidencialesTC" | "Aruba" | "Curazao" | "Barbados" | "SantaLucia" | "Granada" | "Martinica" | "Guadalupe" | "SanMartin" | "Dominica" | "Antigua" | "Tobago" | "Cartagena" | "SanAndres" | "Roatan" | "Belice" | "Tulum" | "BocasDelToro";
 
 export type BookingStatus = "Pendiente" | "Confirmada";
 
