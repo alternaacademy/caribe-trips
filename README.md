@@ -121,10 +121,24 @@ browser ──POST /api/recommend──▶ caribe-api ──/api/chat──▶ o
 | `OLLAMA_TIMEOUT_MS` | `60000` | hard per-request timeout |
 | `CONCIERGE_ENABLED` | `true` | kill switch; `false` makes the endpoint report unavailable |
 
+When nothing in the catalog answers the request — a trip to Japan, a budget no package
+meets — the model sets `fits: false` and the UI reframes the panel as *"nada encaja del
+todo"*, still offering the closest option instead of a dead end. Without that field the
+schema forces a pick, so an impossible request came back as a confident wrong answer.
+
 A recommendation takes **~16 s** on the reference machine (an RTX-class desktop reachable over
 Tailscale), so the request is explicit — never debounce-on-type — and the UI shows a skeleton
 while it runs. If Ollama is unreachable the endpoint returns **503** and the page degrades to
-plain browsing (destination chips + grid) rather than showing an error.
+plain browsing (destination chips + grid) rather than showing an error. Unreachable, timed
+out and unusable-answer are distinct codes (`concierge_unavailable` / `concierge_timeout` /
+`concierge_confused`) so a slow model doesn't read like an unplugged one, and a long wait
+shows an elapsed counter with a **Cancelar** button.
+
+Edge cases are tested without a model on either side:
+`crates/caribe-api/tests/concierge_faults.rs` drives the server against a stub Ollama on a
+real socket (unreachable, slow, empty content, unparseable, invented package), and
+`packages/web/e2e/concierge-states.spec.ts` intercepts `/api/recommend` to assert each UI
+state. Neither suite needs Ollama running.
 
 Two things are load-bearing and easy to regress: the request must send `"think": false`
 (`gemma4:31b` otherwise spends its whole token budget in a `thinking` field and returns empty

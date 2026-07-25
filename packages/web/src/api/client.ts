@@ -22,12 +22,18 @@ interface ErrorEnvelope {
 }
 
 /** Perform a JSON request and decode the response (or throw `ApiError`). */
-export async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+export async function request<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+  signal?: AbortSignal,
+): Promise<T> {
   const hasBody = body !== undefined;
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers: hasBody ? { 'content-type': 'application/json' } : undefined,
     body: hasBody ? JSON.stringify(body) : undefined,
+    signal,
   });
 
   if (res.status === 204) {

@@ -25,9 +25,10 @@ fn response_schema() -> serde_json::Value {
             "why":            { "type": "string" },
             "considerations": { "type": "string" },
             "alsoConsider":   { "type": "array", "items": { "type": "integer" } },
+            "fits":           { "type": "boolean" },
             "confidence":     { "type": "number" }
         },
-        "required": ["pick", "headline", "why", "considerations", "alsoConsider", "confidence"]
+        "required": ["pick", "headline", "why", "considerations", "alsoConsider", "fits", "confidence"]
     })
 }
 
@@ -41,6 +42,17 @@ struct ModelChoice {
     considerations: String,
     #[serde(default)]
     also_consider: Vec<i64>,
+    /// The model's escape hatch. Without it the schema forces a pick, so a
+    /// request nothing in the catalog satisfies still comes back as a confident
+    /// recommendation.
+    #[serde(default = "yes")]
+    fits: bool,
+    #[serde(default)]
+    confidence: f64,
+}
+
+fn yes() -> bool {
+    true
 }
 
 #[derive(Debug, Serialize)]
@@ -51,6 +63,13 @@ pub struct Recommendation {
     pub why: String,
     pub considerations: String,
     pub also_consider: Vec<Package>,
+    /// False when nothing in the catalog genuinely answers the request. The
+    /// pick is still the closest option; the UI reframes it rather than
+    /// presenting it as a match.
+    pub fits: bool,
+    /// The model's own confidence, surfaced so the UI can soften its framing
+    /// instead of presenting a shaky pick as a firm recommendation.
+    pub confidence: f64,
     pub model: String,
     pub elapsed_ms: u64,
 }
@@ -60,6 +79,8 @@ pub struct Recommendation {
 pub enum ConciergeError {
     Disabled,
     Unreachable(String),
+    /// The model was reachable but took longer than `OLLAMA_TIMEOUT_MS`.
+    TimedOut,
     BadResponse(String),
     UngroundedChoice(i64),
 }
@@ -69,6 +90,7 @@ impl std::fmt::Display for ConciergeError {
         match self {
             ConciergeError::Disabled => write!(f, "concierge is disabled"),
             ConciergeError::Unreachable(m) => write!(f, "model unreachable: {m}"),
+            ConciergeError::TimedOut => write!(f, "model timed out"),
             ConciergeError::BadResponse(m) => write!(f, "unusable model response: {m}"),
             ConciergeError::UngroundedChoice(n) => {
                 write!(f, "model chose catalog position {n}, which does not exist")
@@ -93,7 +115,11 @@ Reglas:
 - `headline`: máximo 60 caracteres.
 - `why`: máximo 180 caracteres, una sola oración, sin repetir lo que dijo el viajero.
 - `considerations`: máximo 120 caracteres, una sola oración honesta sobre duración,
-  presupuesto o esfuerzo. Si nada cumple lo pedido, recomienda lo más cercano y dilo aquí.";
+  presupuesto o esfuerzo.
+- `fits`: true solo si alguna opción cumple de verdad lo que pidió el viajero.
+  Ponlo en false si pide un destino, una fecha, un presupuesto o un tipo de viaje
+  que el catálogo no ofrece, o si el mensaje no habla de viajar. En ese caso igual
+  elige lo más cercano y explica en `considerations` qué no se cumple.";
 
 const MONTHS: [&str; 12] = [
     "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic",
@@ -174,7 +200,13 @@ pub async fn recommend(
         .json(&body)
         .send()
         .await
-        .map_err(|e| ConciergeError::Unreachable(e.to_string()))?;
+        .map_err(|e| {
+            if e.is_timeout() {
+                ConciergeError::TimedOut
+            } else {
+                ConciergeError::Unreachable(e.to_string())
+            }
+        })?;
 
     if !resp.status().is_success() {
         return Err(ConciergeError::Unreachable(format!(
@@ -183,10 +215,13 @@ pub async fn recommend(
         )));
     }
 
-    let envelope: serde_json::Value = resp
-        .json()
-        .await
-        .map_err(|e| ConciergeError::BadResponse(e.to_string()))?;
+    let envelope: serde_json::Value = resp.json().await.map_err(|e| {
+        if e.is_timeout() {
+            ConciergeError::TimedOut
+        } else {
+            ConciergeError::BadResponse(e.to_string())
+        }
+    })?;
     let content = envelope
         .pointer("/message/content")
         .and_then(|v| v.as_str())
@@ -221,6 +256,8 @@ pub async fn recommend(
         why: choice.why,
         considerations: choice.considerations,
         also_consider,
+        fits: choice.fits,
+        confidence: choice.confidence.clamp(0.0, 1.0),
         model: config.ollama_model.clone(),
         elapsed_ms: started.elapsed().as_millis() as u64,
     })

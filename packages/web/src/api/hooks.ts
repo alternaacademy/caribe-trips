@@ -47,9 +47,13 @@ export function useBookingByCode(code: string) {
 /* ── Mutations ────────────────────────────────────────────────────────── */
 
 /** The AI concierge. A mutation, not a query: it's an explicit, expensive
- *  (~15 s) action the traveler triggers, never something that fires on typing. */
+ *  (tens of seconds) action the traveler triggers, never something that fires
+ *  on typing. Takes a signal so the traveler can give up on a slow model. */
 export function useRecommend() {
-  return useMutation({ mutationFn: recommend });
+  return useMutation({
+    mutationFn: ({ intent, signal }: { intent: string; signal?: AbortSignal }) =>
+      recommend(intent, signal),
+  });
 }
 
 export function useCreateBooking() {

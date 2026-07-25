@@ -23,8 +23,13 @@ pub enum ApiError {
     Internal(String),
     /// The AI concierge could not produce a recommendation (503). Deliberately
     /// distinct from `Internal`: the client degrades to browsing rather than
-    /// treating it as a bug.
+    /// treating it as a bug. The variants map to different copy in the UI, so
+    /// a slow model does not read the same as an unplugged one.
     ConciergeUnavailable,
+    ConciergeTimeout,
+    /// Reached the model, but its answer was unusable (unparseable, or it chose
+    /// a package that does not exist).
+    ConciergeConfused,
 }
 
 impl ApiError {
@@ -38,6 +43,10 @@ impl ApiError {
             ApiError::ConciergeUnavailable => {
                 (StatusCode::SERVICE_UNAVAILABLE, "concierge_unavailable")
             }
+            ApiError::ConciergeTimeout => (StatusCode::GATEWAY_TIMEOUT, "concierge_timeout"),
+            ApiError::ConciergeConfused => {
+                (StatusCode::SERVICE_UNAVAILABLE, "concierge_confused")
+            }
         }
     }
 
@@ -47,6 +56,10 @@ impl ApiError {
             ApiError::NotFound => "resource not found".to_string(),
             ApiError::ConciergeUnavailable => {
                 "el asesor no está disponible en este momento".to_string()
+            }
+            ApiError::ConciergeTimeout => "el asesor tardó demasiado en responder".to_string(),
+            ApiError::ConciergeConfused => {
+                "el asesor no pudo armar una recomendación".to_string()
             }
         }
     }

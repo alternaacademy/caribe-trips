@@ -53,12 +53,16 @@ async fn recommend(
             Ok(Json(rec))
         }
         Err(err) => {
-            if matches!(err, ConciergeError::UngroundedChoice(_)) {
-                tracing::warn!(%err, "concierge returned an unknown package");
-            } else {
-                tracing::warn!(%err, "concierge unavailable");
-            }
-            Err(ApiError::ConciergeUnavailable)
+            tracing::warn!(%err, "concierge failed");
+            Err(match err {
+                ConciergeError::TimedOut => ApiError::ConciergeTimeout,
+                ConciergeError::BadResponse(_) | ConciergeError::UngroundedChoice(_) => {
+                    ApiError::ConciergeConfused
+                }
+                ConciergeError::Disabled | ConciergeError::Unreachable(_) => {
+                    ApiError::ConciergeUnavailable
+                }
+            })
         }
     }
 }

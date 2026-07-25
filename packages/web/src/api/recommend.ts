@@ -10,10 +10,17 @@ export interface Recommendation {
   why: string;
   considerations: string;
   alsoConsider: Package[];
+  /** False when nothing in the catalog genuinely answers the request — the
+   *  package is then the closest option, not a match. */
+  fits: boolean;
+  /** The model's own confidence; below `LOW_CONFIDENCE` the UI softens its framing. */
+  confidence: number;
   model: string;
   elapsedMs: number;
 }
 
-export function recommend(intent: string): Promise<Recommendation> {
-  return request<Recommendation>('POST', '/recommend', { intent });
+export const LOW_CONFIDENCE = 0.6;
+
+export function recommend(intent: string, signal?: AbortSignal): Promise<Recommendation> {
+  return request<Recommendation>('POST', '/recommend', { intent }, signal);
 }

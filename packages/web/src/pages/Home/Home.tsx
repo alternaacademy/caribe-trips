@@ -1,6 +1,8 @@
+import { ApiError } from '@/api/client';
 import { usePackages, useRecommend } from '@/api/hooks';
 import type { Package } from '@/api/types';
 import {
+  type ConciergeFailure,
   ConciergeResult,
   ConciergeSkeleton,
   ConciergeUnavailable,
@@ -15,7 +17,7 @@ import { isMobileShell } from '@/mobile/platform';
 import { useOnline } from '@/mobile/useOnline';
 import { EmptyState, MonthHeader, PackageCard, PackageCardSkeleton } from '@/ui';
 import { MapPinIcon } from '@/ui/icons';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Home.module.css';
 import { buildMonthGroups, totalDepartures } from './monthGroups';
@@ -24,12 +26,22 @@ import { useFilters } from './useFilters';
 /** Matches MIN_INTENT_CHARS on the API. */
 const MIN_INTENT = 10;
 
+/** The API distinguishes these so a slow model doesn't read like a dead one. */
+function failureOf(error: unknown): ConciergeFailure {
+  if (error instanceof ApiError) {
+    if (error.code === 'concierge_timeout') return 'timeout';
+    if (error.code === 'concierge_confused') return 'confused';
+  }
+  return 'unavailable';
+}
+
 export function Home() {
   const navigate = useNavigate();
   const { destination, setDestination, reset } = useFilters();
 
   const [intent, setIntent] = useState('');
   const concierge = useRecommend();
+  const abortRef = useRef<AbortController | null>(null);
 
   const { data: packages, isLoading, isError, refetch } = usePackages({ destination });
   const mobile = isMobileShell();
@@ -37,12 +49,29 @@ export function Home() {
 
   const askConcierge = () => {
     const text = intent.trim();
-    if (text.length >= MIN_INTENT) concierge.mutate(text);
+    if (text.length < MIN_INTENT) return;
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    concierge.mutate({ intent: text, signal: controller.signal });
+  };
+
+  /** Give up on a slow model without leaving the page in a loading state. */
+  const cancelConcierge = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    concierge.reset();
+  };
+
+  const focusIntent = () => {
+    const el = document.getElementById('search-input');
+    el?.scrollIntoView({ block: 'center' });
+    (el as HTMLTextAreaElement | null)?.focus();
   };
 
   const clearAll = () => {
     setIntent('');
-    concierge.reset();
+    cancelConcierge();
     reset();
   };
 
@@ -83,9 +112,16 @@ export function Home() {
         minChars={MIN_INTENT}
       />
 
-      {concierge.isPending && <ConciergeSkeleton />}
-      {concierge.isError && <ConciergeUnavailable onRetry={askConcierge} />}
-      {concierge.isSuccess && !concierge.isPending && <ConciergeResult result={concierge.data} />}
+      {concierge.isPending && <ConciergeSkeleton onCancel={cancelConcierge} />}
+      {concierge.isError && (
+        <ConciergeUnavailable
+          failure={failureOf(concierge.error)}
+          onRetry={failureOf(concierge.error) === 'confused' ? focusIntent : askConcierge}
+        />
+      )}
+      {concierge.isSuccess && !concierge.isPending && (
+        <ConciergeResult result={concierge.data} onRefine={focusIntent} />
+      )}
 
       <DestinationChips active={destination} onSelect={setDestination} />
 
