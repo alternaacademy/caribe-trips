@@ -16,7 +16,7 @@ export function ConciergeSkeleton() {
       </div>
       <Skeleton width="90%" height={14} />
       <p className={styles.wait}>
-        Esto toma unos segundos: el asesor está leyendo todo el catálogo.
+        Puede tomar hasta medio minuto: el asesor está leyendo todo el catálogo.
       </p>
     </section>
   );

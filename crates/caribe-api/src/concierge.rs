@@ -7,6 +7,7 @@
 use std::time::Duration;
 
 use caribe_core::Package;
+use chrono::Datelike;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -94,25 +95,35 @@ Reglas:
 - `considerations`: máximo 120 caracteres, una sola oración honesta sobre duración,
   presupuesto o esfuerzo. Si nada cumple lo pedido, recomienda lo más cercano y dilo aquí.";
 
+const MONTHS: [&str; 12] = [
+    "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic",
+];
+
 /// One line per package, numbered from 1 to match `pick`.
+///
+/// Departures collapse to distinct months. Listing every ISO date cost ~40
+/// tokens per package — across the catalog that was several seconds of
+/// prompt-eval to express "this runs in August".
 fn catalog_block(packages: &[Package]) -> String {
     packages
         .iter()
         .enumerate()
         .map(|(i, p)| {
-            let dates = p
-                .departures
-                .iter()
-                .map(|d| d.date.to_string())
-                .collect::<Vec<_>>()
-                .join(", ");
+            let mut months: Vec<&str> = Vec::new();
+            for d in &p.departures {
+                let m = MONTHS[d.date.month0() as usize];
+                if !months.contains(&m) {
+                    months.push(m);
+                }
+            }
             format!(
-                "{n}) \"{title}\" | {dest:?} | desde RD${price} | {pitch} | salidas: {dates}",
+                "{n}) \"{title}\" | {dest:?} | RD${price} | {pitch} | {months}",
                 n = i + 1,
                 title = p.title,
                 dest = p.destination,
                 price = p.price_from,
                 pitch = p.short_pitch,
+                months = months.join("/"),
             )
         })
         .collect::<Vec<_>>()
@@ -139,7 +150,9 @@ pub async fn recommend(
         // and returns an empty `content`.
         "think": false,
         "format": response_schema(),
-        "options": { "temperature": 0.3, "num_predict": 600 },
+        // num_ctx is explicit: Ollama's default silently truncates a prompt
+        // that outgrows it, which would drop catalog entries without any error.
+        "options": { "temperature": 0.3, "num_predict": 600, "num_ctx": 8192 },
         "messages": [
             { "role": "system", "content": SYSTEM_PROMPT },
             { "role": "user", "content": format!(
@@ -244,7 +257,9 @@ mod tests {
         assert!(block.starts_with("1) \"Escapada\""), "got {block}");
         assert!(block.contains("2) \"Saona\""), "got {block}");
         assert!(block.contains("RD$1000"), "got {block}");
-        assert!(block.contains("2026-08-09"), "got {block}");
+        // Months, not full ISO dates — the long form cost prompt-eval seconds.
+        assert!(block.contains("ago"), "got {block}");
+        assert!(!block.contains("2026-08-09"), "got {block}");
     }
 
     #[test]
