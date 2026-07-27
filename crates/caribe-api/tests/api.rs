@@ -258,3 +258,19 @@ async fn bookings_endpoints() {
 fn body_first_id(body: Value) -> String {
     body[0]["id"].as_str().unwrap().to_string()
 }
+
+/// `/health` reports the API *and* its database, so a probe cannot see green
+/// while Mongo is gone.
+#[tokio::test]
+async fn health_reports_mongo() {
+    let Some(app) = app_with_fresh_db("caribe_trips_test_api_health").await else {
+        eprintln!("skipping: MONGODB_TEST_URI not set");
+        return;
+    };
+
+    let (status, body) = send(&app, "GET", "/api/health", None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["status"], "ok");
+    assert_eq!(body["mongo"], "ok");
+    assert_eq!(body["api"], "ok");
+}

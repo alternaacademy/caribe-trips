@@ -8,5 +8,6 @@ pub mod app;
 pub mod concierge;
 pub mod config;
 pub mod error;
+pub mod events;
 pub mod routes;
 pub mod state;

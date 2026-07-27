@@ -8,6 +8,7 @@ use serde::Deserialize;
 
 use crate::concierge::{self, ConciergeError, Recommendation};
 use crate::error::{ApiError, ApiResult};
+use crate::events::{self, Estado, ANONIMO};
 use crate::state::AppState;
 
 const MAX_INTENT_CHARS: usize = 2000;
@@ -34,6 +35,7 @@ async fn recommend(
     }
     let intent: String = intent.chars().take(MAX_INTENT_CHARS).collect();
 
+    let started = std::time::Instant::now();
     let packages = state
         .db
         .packages()
@@ -50,10 +52,34 @@ async fn recommend(
                 elapsed_ms = rec.elapsed_ms,
                 "concierge recommendation"
             );
+            // `fits=false` is a successful call that found nothing — worth
+            // separating in Kibana from a genuine match.
+            let detalle = if rec.fits { "match" } else { "sin_match" };
+            events::emit(
+                "concierge_consulta",
+                ANONIMO,
+                rec.elapsed_ms,
+                Estado::Ok,
+                Some(detalle),
+            );
             Ok(Json(rec))
         }
         Err(err) => {
             tracing::warn!(%err, "concierge failed");
+            let motivo = match err {
+                ConciergeError::Disabled => "desactivado",
+                ConciergeError::Unreachable(_) => "inalcanzable",
+                ConciergeError::TimedOut => "timeout",
+                ConciergeError::BadResponse(_) => "respuesta_invalida",
+                ConciergeError::UngroundedChoice(_) => "paquete_inexistente",
+            };
+            events::emit(
+                "concierge_consulta",
+                ANONIMO,
+                started.elapsed().as_millis() as u64,
+                Estado::Error,
+                Some(motivo),
+            );
             Err(match err {
                 ConciergeError::TimedOut => ApiError::ConciergeTimeout,
                 ConciergeError::BadResponse(_) | ConciergeError::UngroundedChoice(_) => {

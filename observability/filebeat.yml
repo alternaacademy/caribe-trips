@@ -1,0 +1,48 @@
+# Filebeat: ships the caribe-api container's stdout to Elasticsearch.
+#
+# The API writes two kinds of lines: human tracing output, and one JSON object
+# per line for each domain event. `decode_json_fields` lifts the JSON ones into
+# real fields (evento, hora, usuario, duracion_ms, estado); the human lines are
+# left as plain `message`, which is why the decode step must not error on them.
+#
+# No credentials here on purpose: Elasticsearch runs with security disabled on a
+# private compose network, so there is nothing to authenticate with.
+
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      templates:
+        # Only this project's API. Every other container on the host is ignored.
+        - condition:
+            contains:
+              docker.container.name: caribe-api
+          config:
+            - type: container
+              paths:
+                - /var/lib/docker/containers/${data.docker.container.id}/*.log
+
+processors:
+  - add_docker_metadata: ~
+  - decode_json_fields:
+      fields: ["message"]
+      target: ""
+      overwrite_keys: true
+      # Human tracing lines are not JSON; skip them quietly instead of
+      # tagging every one of them as an error.
+      add_error_key: false
+  # Keep the index lean: agent/host/input plumbing adds no value here.
+  - drop_fields:
+      fields: ["agent", "ecs", "input", "stream", "host"]
+      ignore_missing: true
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  index: "caribe-logs-%{+yyyy.MM.dd}"
+
+setup.template.name: "caribe-logs"
+setup.template.pattern: "caribe-logs-*"
+# Daily indices are plenty for a local stack; ILM would add policy noise.
+setup.ilm.enabled: false
+setup.kibana.host: "http://kibana:5601"
+
+logging.level: info

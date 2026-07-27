@@ -85,6 +85,13 @@ impl Db {
         Ok(())
     }
 
+    /// Round-trip a `ping` to confirm the database is still answering. Used by
+    /// the health endpoint, so it must stay cheap and touch no collections.
+    pub async fn ping(&self) -> Result<(), RepoError> {
+        self.database.run_command(doc! { "ping": 1 }).await?;
+        Ok(())
+    }
+
     /// Drop the entire database. Used by tests and the seed reset path.
     pub async fn drop_database(&self) -> Result<(), RepoError> {
         self.database.drop().await?;

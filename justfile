@@ -67,6 +67,14 @@ stack:
 stack-down:
     docker compose down
 
+# Bring the observability stack up (Elasticsearch + Kibana + Filebeat).
+observability:
+    docker compose --profile observability up -d
+
+# Tear the observability stack down (volumes retained).
+observability-down:
+    docker compose --profile observability down
+
 # Bring only MongoDB up (for host-side API/web dev).
 up:
     docker compose up -d mongo

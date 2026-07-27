@@ -27,6 +27,7 @@ uuid = { version = "1", features = ["v4", "serde"] }
 tower-http = { version = "0.6", features = ["cors", "trace"] }
 rand = "0.8"
 regex = "1"
+sha2 = "0.10"
 futures = "0.3"
 tower = "0.5"
 clap = { version = "4", features = ["derive", "env"] }

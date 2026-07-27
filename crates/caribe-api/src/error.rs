@@ -50,6 +50,16 @@ impl ApiError {
         }
     }
 
+    /// Concierge failures are recorded by their route, with timing.
+    fn is_concierge(&self) -> bool {
+        matches!(
+            self,
+            ApiError::ConciergeUnavailable
+                | ApiError::ConciergeTimeout
+                | ApiError::ConciergeConfused
+        )
+    }
+
     fn message(&self) -> String {
         match self {
             ApiError::Validation(m) | ApiError::Conflict(m) | ApiError::Internal(m) => m.clone(),
@@ -71,6 +81,19 @@ impl IntoResponse for ApiError {
         let message = self.message();
         if status == StatusCode::INTERNAL_SERVER_ERROR {
             tracing::error!(code, %message, "request failed");
+        }
+        // Single funnel for every API failure. Concierge errors are skipped
+        // here because the route already emitted them with a real duration and
+        // the specific failure mode; logging them twice would double the counts.
+        if !self.is_concierge() {
+            // No duration: this is the response boundary, not the operation.
+            crate::events::emit(
+                "fallo",
+                crate::events::ANONIMO,
+                0,
+                crate::events::Estado::Error,
+                Some(code),
+            );
         }
         let body = json!({ "error": { "code": code, "message": message } });
         (status, Json(body)).into_response()

@@ -17,6 +17,7 @@ use serde::Deserialize;
 
 use super::parse_enum;
 use crate::error::{ApiError, ApiResult};
+use crate::events::{self, Estado};
 use crate::state::AppState;
 
 /// How many times to regenerate a code on the (rare) unique-index collision.
@@ -34,6 +35,7 @@ async fn create(
     State(state): State<AppState>,
     Json(body): Json<NewBooking>,
 ) -> ApiResult<(StatusCode, Json<Booking>)> {
+    let started = std::time::Instant::now();
     // Unknown package → 404.
     let package = state.db.packages().get(&body.package_id).await?;
 
@@ -65,7 +67,16 @@ async fn create(
             created_at: chrono::Utc::now(),
         };
         match bookings.create(booking).await {
-            Ok(created) => return Ok((StatusCode::CREATED, Json(created))),
+            Ok(created) => {
+                events::emit(
+                    "reserva_creada",
+                    &events::usuario_hash(&body.contact.email),
+                    started.elapsed().as_millis() as u64,
+                    Estado::Ok,
+                    Some(&created.code),
+                );
+                return Ok((StatusCode::CREATED, Json(created)));
+            }
             Err(RepoError::DuplicateCode) => continue,
             Err(e) => return Err(e.into()),
         }
@@ -108,7 +119,16 @@ async fn confirm(
     State(state): State<AppState>,
     Path(id): Path<String>,
 ) -> ApiResult<Json<Booking>> {
-    Ok(Json(state.db.bookings().confirm(&id).await?))
+    let started = std::time::Instant::now();
+    let booking = state.db.bookings().confirm(&id).await?;
+    events::emit(
+        "reserva_confirmada",
+        &events::usuario_hash(&booking.contact.email),
+        started.elapsed().as_millis() as u64,
+        Estado::Ok,
+        Some(&booking.code),
+    );
+    Ok(Json(booking))
 }
 
 /// Booking routes, to be merged under `/api`.

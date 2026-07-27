@@ -77,5 +77,70 @@ services:
       mongo:
         condition: service_healthy
 
+  # ── Observability (profile: observability) ─────────────────────────────
+  # `docker compose --profile observability up -d`. Nothing here is started by
+  # a plain `docker compose up`, and none of it is a dependency of the app —
+  # the API keeps running and logging to stdout whether this stack is up or not.
+  #
+  # Security is disabled on purpose: this is a local, private compose network,
+  # so there are no credentials to store here.
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: caribe-elasticsearch
+    restart: unless-stopped
+    profiles: ["observability"]
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.security.enrollment.enabled: "false"
+      # Cap the heap: the default grabs a share of host RAM this doesn't need.
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+    ports:
+      - "${ES_PORT:-9200}:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: caribe-kibana
+    restart: unless-stopped
+    profiles: ["observability"]
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "${KIBANA_PORT:-5601}:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.15.0
+    container_name: caribe-filebeat
+    restart: unless-stopped
+    profiles: ["observability"]
+    user: root
+    # `--strict.perms=false`: the mounted config is owned by the host user, and
+    # Filebeat otherwise refuses to start on the ownership mismatch.
+    command: ["filebeat", "-e", "--strict.perms=false"]
+    volumes:
+      - ./observability/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      # Reads the API's stdout from the outside, so the api service itself
+      # needs no logging driver, sidecar or config change.
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - filebeat_data:/usr/share/filebeat/data
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
 volumes:
   mongo_data: {}
+  es_data: {}
+  filebeat_data: {}

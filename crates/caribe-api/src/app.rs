@@ -1,7 +1,8 @@
 //! Router construction: health endpoint, the `/api` mount point for resource
 //! routes (filled by Tasks 07/08), plus CORS, tracing, and a uniform 404.
 
-use axum::http::{header, HeaderValue, Method};
+use axum::extract::State;
+use axum::http::{header, HeaderValue, Method, StatusCode};
 use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::{Json, Router};
@@ -25,15 +26,33 @@ pub fn router(state: AppState, config: &Config) -> Router {
 
     Router::new()
         .nest("/api", api)
+        // Also at the root, where container healthchecks and uptime probes look.
+        .route("/health", get(health))
         .fallback(not_found)
         .layer(cors_layer(config))
         .layer(TraceLayer::new_for_http())
         .with_state(state)
 }
 
-/// `GET /api/health` → `200 {"status":"ok"}`.
-async fn health() -> impl IntoResponse {
-    Json(json!({ "status": "ok" }))
+/// `GET /health` (and `/api/health`) — liveness of the API and its database.
+///
+/// 200 only when Mongo answers a ping; 503 otherwise, so a container
+/// healthcheck or uptime probe sees a dead dependency instead of a green API
+/// sitting on top of a database that is gone.
+async fn health(State(state): State<AppState>) -> impl IntoResponse {
+    match state.db.ping().await {
+        Ok(()) => (
+            StatusCode::OK,
+            Json(json!({ "status": "ok", "api": "ok", "mongo": "ok" })),
+        ),
+        Err(e) => {
+            tracing::error!(%e, "health check: mongo unreachable");
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({ "status": "degraded", "api": "ok", "mongo": "error" })),
+            )
+        }
+    }
 }
 
 /// Any unmatched route returns the standard error envelope (404).
@@ -74,26 +93,11 @@ mod tests {
         String::from_utf8(bytes.to_vec()).unwrap()
     }
 
-    /// Health + the 404 envelope. These routes don't read state, so the test
-    /// builds them directly without a database.
+    /// The 404 envelope, which needs no state. `/health` now pings Mongo, so it
+    /// is covered by the database-backed suite in `tests/api.rs` instead.
     #[tokio::test]
-    async fn health_and_404_envelope() {
-        let app: Router = Router::new()
-            .route("/api/health", get(health))
-            .fallback(not_found);
-
-        let ok = app
-            .clone()
-            .oneshot(
-                Request::builder()
-                    .uri("/api/health")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-        assert_eq!(ok.status(), StatusCode::OK);
-        assert_eq!(body_string(ok).await, r#"{"status":"ok"}"#);
+    async fn unmatched_route_returns_the_error_envelope() {
+        let app: Router = Router::new().fallback(not_found);
 
         let missing = app
             .oneshot(

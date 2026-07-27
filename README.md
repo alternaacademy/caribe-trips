@@ -30,7 +30,8 @@ crates/
   caribe-api/               # Axum server (lib + bin)
 packages/
   web/                      # React SPA (customer + agent), Playwright E2E
-docker-compose.yml          # MongoDB (+ mongo-express under the `tools` profile)
+docker-compose.yml          # MongoDB, API, web (+ `tools` and `observability` profiles)
+observability/              # filebeat config for the observability profile
 justfile                    # task runner (see below)
 notes/                      # design docs, stack, plan, per-task specs (notes/tasks/00-INDEX.md)
 ```
@@ -99,6 +100,7 @@ Web (`packages/web/.env`): `VITE_API_BASE_URL` (default `http://localhost:8080/a
 | `just build` | release build (cargo + web) |
 | `just e2e` | full-stack Playwright happy-path against an isolated, reset-seeded DB |
 | `just android-dev` / `just android-build` | Tauri Android (requires the Android toolchain — Task 22) |
+| `just observability` / `just observability-down` | Elasticsearch + Kibana + Filebeat |
 
 ## AI concierge
 
@@ -147,6 +149,80 @@ the model silently omits optional ones.
 
 Use the tailnet **FQDN**, not the short host name — containers resolve through Docker's own
 resolver, which has no tailnet search domain, so `http://gauss:11434` fails from inside compose.
+
+## Observabilidad
+
+El API emite **una línea JSON por evento** a stdout, además de sus logs humanos. Un perfil de
+compose aparte levanta Elasticsearch + Kibana + Filebeat para consultarlas.
+
+### Levantarlo
+
+```sh
+docker compose --profile observability up -d      # elasticsearch, kibana, filebeat
+docker compose --profile observability down       # bajarlo (los datos quedan en el volumen)
+```
+
+Nada de esto arranca con un `docker compose up` normal, y la app no depende de ello: el API
+sigue funcionando y escribiendo sus eventos aunque el stack esté apagado.
+
+- **Kibana:** <http://localhost:5601> · **Elasticsearch:** <http://localhost:9200>
+- Si esos puertos están ocupados, define `KIBANA_PORT` / `ES_PORT` en `.env` (igual que
+  `MONGO_PORT`). En esta máquina están en `5602` y `9201`.
+- Sin credenciales: Elasticsearch corre con seguridad desactivada en una red privada de
+  compose, así que no hay claves que guardar en el compose ni en el repo.
+
+### Qué se registra
+
+| Campo | Contenido |
+|---|---|
+| `evento` | `reserva_creada` · `reserva_confirmada` · `concierge_consulta` · `fallo` |
+| `hora` | instante UTC en RFC 3339 |
+| `usuario` | id seudónimo (`u_` + SHA-256 recortado del correo), o `anonimo` |
+| `duracion_ms` | duración de la operación; `0` en `fallo`, que se emite en la respuesta y no mide una operación |
+| `estado` | `ok` \| `error` |
+| `detalle` | código de reserva, `match`/`sin_match`, o el motivo del fallo |
+
+**Privacidad:** nunca se registran contraseñas, tokens, nombres, teléfonos ni correos
+completos. El correo solo aparece como hash truncado, que sirve para seguir a un viajero
+entre eventos pero no para identificarlo. Los motivos de fallo del concierge
+(`inalcanzable`, `timeout`, `respuesta_invalida`, `paquete_inexistente`, `desactivado`) sí se
+registran, porque no contienen datos del viajero.
+
+Filebeat lee el stdout del contenedor `caribe-api` desde fuera —montando los logs de Docker en
+modo lectura— así que los servicios `mongo`, `api` y `web` no cambian en nada.
+
+### Qué buscar en Kibana
+
+La primera vez: **Discover → Create data view**, nombre `caribe-logs`, patrón `caribe-logs-*`,
+campo de tiempo `@timestamp`.
+
+| Pregunta | Consulta (KQL) |
+|---|---|
+| ¿Qué falló hoy? | `estado: "error"` |
+| ¿El concierge está sano? | `evento: "concierge_consulta"` — divide por `estado` |
+| ¿Cuánto tarda el concierge? | `evento: "concierge_consulta" and estado: "ok"` → visualización *Average* de `duracion_ms` |
+| ¿Se cae el modelo o solo va lento? | `evento: "concierge_consulta" and estado: "error"` → desglosa por `detalle` |
+| ¿Cuántas veces no encontramos nada? | `evento: "concierge_consulta" and detalle: "sin_match"` |
+| Reservas de hoy | `evento: "reserva_creada"` |
+| Recorrido de un viajero | `usuario: "u_xxxxxxxxxxxx"` — enlaza su reserva con su confirmación |
+| Errores de la API sin el ruido del concierge | `evento: "fallo"` → desglosa por `detalle` |
+
+Para ver las líneas crudas sin Kibana:
+
+```sh
+docker logs caribe-api | grep '^{"evento"'
+```
+
+### Salud
+
+`GET /health` (y `/api/health`) responden por el API **y** por Mongo, así que una sonda no ve
+verde con la base de datos caída:
+
+```sh
+curl -s http://localhost:8088/health
+# {"status":"ok","api":"ok","mongo":"ok"}     → 200
+# {"status":"degraded","api":"ok","mongo":"error"} → 503
+```
 
 ## Testing
 
