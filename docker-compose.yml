@@ -35,6 +35,9 @@ services:
       API_BIND: 0.0.0.0:8080
       # The browser origin that must be allowed by CORS (the web service below).
       WEB_ORIGIN: "http://localhost:${WEB_PORT:-5173}"
+      # Second allowed origin. The Android build's webview serves from
+      # http://tauri.localhost, which is not the web origin above.
+      CORS_EXTRA_ORIGIN: "${CORS_EXTRA_ORIGIN:-}"
       # FQDN, not the short name: the container's resolver has no tailnet
       # search domain, so `gauss` alone does not resolve.
       OLLAMA_URL: "${OLLAMA_URL:-http://gauss.icefish-vector.ts.net:11434}"

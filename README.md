@@ -41,8 +41,8 @@ notes/                      # design docs, stack, plan, per-task specs (notes/ta
 - **Rust** (stable; `rust-toolchain.toml` pins it with rustfmt + clippy)
 - **Node** + **pnpm**
 - **Docker** (for MongoDB via compose)
-- For the Android build (Task 22): Android SDK/NDK + JDK + the Tauri CLI — see
-  [notes/MOBILE.md](notes/MOBILE.md). Not required for web/API development.
+- For the Android build: Android SDK/NDK + JDK 17 + the Tauri CLI — see
+  [crates/mobile/README.md](crates/mobile/README.md). Not required for web/API development.
 
 ## Quickstart — the whole stack, one command
 
@@ -279,9 +279,11 @@ just android-build   # → crates/mobile/gen/android/app/build/outputs/apk/.../a
 just android-dev     # run on a connected device/emulator with live reload
 ```
 
-The Tauri WebView serves the app from `http://tauri.localhost`, so allow that origin on the API for
-on-device fetches. More native-specialization notes: [notes/MOBILE.md](notes/MOBILE.md). Status-bar
-theming + splash polish remain device-side follow-ups (Tasks 23 notes).
+The Tauri WebView serves the app from `http://tauri.localhost`, so the API must allow that origin
+(`CORS_EXTRA_ORIGIN`) for on-device fetches. **[crates/mobile/README.md](crates/mobile/README.md)**
+covers the full emulator workflow and the failures that give no useful error: the JDK version, the
+`10.0.2.2` host address, the CORS passthrough, and running the emulator under Wayland. Status-bar
+theming + splash polish remain device-side follow-ups.
 
 ## Docs
 
