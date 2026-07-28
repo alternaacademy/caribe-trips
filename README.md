@@ -31,7 +31,7 @@ crates/
 packages/
   web/                      # React SPA (customer + agent), Playwright E2E
 docker-compose.yml          # MongoDB, API, web (+ `tools` and `observability` profiles)
-observability/              # filebeat config for the observability profile
+observability/              # filebeat config, Kibana setup script, Kibana guide
 justfile                    # task runner (see below)
 notes/                      # design docs, stack, plan, per-task specs (notes/tasks/00-INDEX.md)
 ```
@@ -190,6 +190,9 @@ registran, porque no contienen datos del viajero.
 
 Filebeat lee el stdout del contenedor `caribe-api` desde fuera —montando los logs de Docker en
 modo lectura— así que los servicios `mongo`, `api` y `web` no cambian en nada.
+
+Guía completa de Kibana (crear la data view, consultas, latencia, diagnóstico):
+**[observability/README.md](observability/README.md)**.
 
 ### Qué buscar en Kibana
 

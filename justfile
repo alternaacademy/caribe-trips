@@ -71,6 +71,10 @@ stack-down:
 observability:
     docker compose --profile observability up -d
 
+# Create the Kibana data view (idempotent; needs the stack up).
+kibana-setup:
+    ./observability/setup-kibana.sh
+
 # Tear the observability stack down (volumes retained).
 observability-down:
     docker compose --profile observability down
